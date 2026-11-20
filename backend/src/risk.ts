@@ -48,7 +48,9 @@ async function verified(address: Address) {
       /* Try the second Fuji explorer. */
     }
   }
-  if (!answered) throw Error("Explorer verification unavailable");
+  // Fail closed when both Fuji explorer verification endpoints are unreachable
+  // instead of returning 503 for the entire firewall scan.
+  if (!answered) return false;
   return false;
 }
 
@@ -181,15 +183,20 @@ export function review(scan: Scan, sim: Simulation, targets: Reputation[]) {
         "Số token nhận được thấp hơn mức tối thiểu yêu cầu.",
       );
   }
+  const isStandardApproval =
+    decoded?.functionName === "approve" ||
+    decoded?.functionName === "setApprovalForAll";
   if (
     sim.reverted ||
-    (scan.data !== "0x" && decoded?.functionName !== "transfer")
+    (scan.data !== "0x" &&
+      decoded?.functionName !== "transfer" &&
+      !isStandardApproval)
   )
     add(
       "ABNORMAL_SLIPPAGE_OR_DANGEROUS_CALL",
       sim.reverted
         ? "Lệnh mô phỏng đã revert."
-        : "Calldata yêu cầu thao tác ngoài chuyển token.",
+        : "Calldata yêu cầu thao tác nguy hiểm hoặc không phải chuyển/phê duyệt chuẩn.",
     );
   return {
     triggeredRules: [...reasons.keys()],

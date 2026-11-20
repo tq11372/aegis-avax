@@ -28,23 +28,23 @@ flowchart LR
 
 ### Chạy giao diện và bộ đánh giá
 
-Từ gốc repo, chạy `npm ci`. Cài Foundry và build hợp đồng theo hướng dẫn bên dưới. Cấu hình model theo mục “Chạy với mô hình thật trên máy”. Trong ba terminal ở gốc repo, chạy từng lệnh sau theo thứ tự.
+Từ gốc repo, chạy `npm ci`, cài phụ thuộc & build hợp đồng (`cd contracts && npm ci && forge build`), và tạo file môi trường nếu chưa có (`Copy-Item .env.example .env`). Cấu hình model theo mục “Chạy với mô hình thật trên máy”. Trong ba terminal ở gốc repo, chạy từng lệnh sau theo thứ tự.
 
 1. `npm run model:local` khởi động Qwen ở cổng 8091.
 2. `npm run dev:demo` tạo fork từ block Fuji hiện hành, nạp 50 mUSDC vào két thử và mở dịch vụ ở cổng 4021/4022. Khởi động lại sẽ tạo một phiên mới.
 3. `npm run dev:web` mở giao diện ở cổng 3000. Để dùng bản production, chạy `npm run build -w frontend` và `npm run start -w frontend`.
 
-Khi két đang rảnh, chạy `npm run eval` từ terminal khác. Ở block nguồn **61382536**, ngày 20/11/2026, kết quả trên Anvil với Qwen2.5-1.5B-Instruct Q4_K_M như sau.
+Khi két đang rảnh, chạy `npm run eval` từ terminal khác. Ở block nguồn **61391624**, ngày 21/11/2026, kết quả trên Anvil với Qwen2.5-1.5B-Instruct Q4_K_M như sau (**36/36 đạt 100%**).
 
 | Nhóm ca | Kết quả quan sát |
 | --- | --- |
-| 10 lệnh chuyển hợp lệ | Duyệt 10/10 |
-| 10 lệnh có dấu hiệu rủi ro | Chặn 10/10, khớp cả 5 luật được kiểm tra |
-| 10 đề xuất giao dịch từ hóa đơn có số tiền hoặc người nhận lệch ý định | Chặn 10/10 |
-| Precision / Recall / Block rate trên 20 ca cần chặn | 100% / 100% / 100%, 0 lỗi dịch vụ |
-| Số dư két trước và sau 30 lần gọi API mô phỏng | 50 → 50 mUSDC |
+| 13 lệnh sạch (10 mẫu chuẩn + 2 câu tiếng Việt tự nhiên + 1 lệnh `approve` hạn mức nhỏ 5 mUSDC) | Duyệt 13/13 (`verifier: model`, 0 false positive) |
+| 10 lệnh có dấu hiệu rủi ro (phishing / drainer) | Chặn 10/10, khớp chính xác cả 5 luật cứng |
+| 13 ca Prompt Injection, Jailbreak EOA lạ & lệch tài sản (`AVAX` vs `mUSDC`) | Chặn 13/13 (gồm cả jailbreak `IGNORE PREVIOUS INSTRUCTIONS` và giả mạo alias `MockPartner`) |
+| Precision / Recall / Block rate trên 23 ca cần chặn | **100,0% / 100,0% / 100,0%**, 0 cảnh báo nhầm, 0 lỗi dịch vụ |
+| Số dư két trước và sau 36 lần gọi API mô phỏng | **50 → 50 mUSDC** |
 
-Nhóm hóa đơn kiểm tra giao dịch được đề xuất sau bước đọc hóa đơn. Trích xuất chỉ thị từ tài liệu bằng một agent bên ngoài nằm ngoài phép đo. Hai lần đo trước có lần lượt 2 và 1 cảnh báo nhầm. Sau khi chuẩn hóa số tiền trong dữ liệu gửi Qwen và thêm kết quả đối chiếu số dư, lần đo trên đạt 30/30. Để thử thực thi qua giao diện HTTP và đọc cả hai biên nhận Anvil, chạy `node backend/test/demo-controls.ts` trên phiên mới. Để thử qua giao thức MCP từ đầu tới cuối dùng `npm run test:fork:llm`.
+Nhóm hóa đơn và jailbreak kiểm tra giao dịch được đề xuất sau bước đọc tài liệu không tin cậy, bao gồm cả tấn công tiêm nhiễm chỉ thị trực tiếp vào `userIntent` và lệnh đổi tài sản sang `AVAX` native. Trích xuất chỉ thị từ tài liệu bằng một agent bên ngoài nằm ngoài phép đo. Bộ kiểm thử đơn vị (`npm test`) đạt **9/9**, `npm run test:audit` xác nhận chuyển dự phòng trong **9 ms**, `npm run test:extension` đạt trên Chromium thật. Để thử thực thi qua giao diện HTTP và đọc cả hai biên nhận Anvil, chạy `node backend/test/demo-controls.ts` trên phiên mới. Để thử qua giao thức MCP từ đầu tới cuối dùng `npm run test:fork:llm`.
 
 Bước 1 triển khai két `GuardVault` và bộ quy tắc `PolicyModule`. Chủ két nạp token bằng ERC-20 transfer, cấp session key và chọn người nhận. Agent chỉ được chuyển token thanh toán đã duyệt. Két đọc địa chỉ người nhận và số tiền trực tiếp từ calldata, kiểm tra hạn mức rồi xác thực chữ ký EIP-712 trước khi chuyển. Hạn mức ngày tính trên 24 giờ gần nhất và tiếp tục áp dụng khi đổi session key.
 

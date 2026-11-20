@@ -11,6 +11,33 @@ import {
 } from "./fuji.ts";
 import type { confirmedTransfer } from "./risk.ts";
 
+const POLICY_REVERTS: Record<string, string> = {
+  TxLimitExceeded: "Vượt hạn mức tối đa mỗi giao dịch (TxLimitExceeded).",
+  DailyCapExceeded: "Vượt tổng hạn mức chi tiêu trong cửa sổ trượt 24 giờ (DailyCapExceeded).",
+  TargetNotWhitelisted: "Địa chỉ người nhận không nằm trong targetWhitelist (TargetNotWhitelisted).",
+  TokenNotWhitelisted: "Token không được phép chi tiêu (TokenNotWhitelisted).",
+  AgentRevoked: "Session key của AI Agent đã bị thu hồi hoặc két đang tạm dừng (AgentRevoked).",
+  InvalidSecurityClearance: "Chữ ký EIP-712 Security Clearance không hợp lệ (InvalidSecurityClearance).",
+  ClearanceExpired: "Chữ ký EIP-712 Security Clearance đã hết hạn (ClearanceExpired).",
+};
+
+export class PolicyRejectionError extends Error {
+  code: string;
+  constructor(code: string, message?: string) {
+    super(message ?? POLICY_REVERTS[code] ?? `Hợp đồng từ chối (${code}).`);
+    this.name = "PolicyRejectionError";
+    this.code = code;
+  }
+}
+
+export function extractRevertCode(error: unknown): string | undefined {
+  const text = String(error);
+  for (const code of Object.keys(POLICY_REVERTS)) {
+    if (text.includes(code)) return code;
+  }
+  return undefined;
+}
+
 export async function issue(
   scan: Scan,
   transfer: NonNullable<ReturnType<typeof confirmedTransfer>>,
@@ -34,15 +61,23 @@ export async function issue(
     chain.readContract({ ...read, functionName: "paused" }),
     chain.readContract({ ...read, functionName: "spentInWindow" }),
   ]);
-  if (paused || /^0x0{40}$/i.test(agent) || !isSame(signer, signing.address))
+  if (paused || /^0x0{40}$/i.test(agent))
+    throw new PolicyRejectionError("AgentRevoked");
+  if (!isSame(signer, signing.address))
     throw Error("Vault signing unavailable");
-  await chain.readContract({
-    address: fuji.policy,
-    abi: policyAbi,
-    functionName: "check",
-    args: [fuji.token, transfer.recipient, BigInt(transfer.amount), spent],
-    blockNumber: head.number,
-  });
+  try {
+    await chain.readContract({
+      address: fuji.policy,
+      abi: policyAbi,
+      functionName: "check",
+      args: [fuji.token, transfer.recipient, BigInt(transfer.amount), spent],
+      blockNumber: head.number,
+    });
+  } catch (err) {
+    const code = extractRevertCode(err);
+    if (code) throw new PolicyRejectionError(code);
+    throw err;
+  }
   const deadline = head.timestamp + 90n;
   const fields = [
     { name: "vault", type: "address" },
@@ -73,13 +108,19 @@ export async function issue(
     },
   });
   // Apply the current policy and signature through the same entrypoint the agent uses.
-  await chain.simulateContract({
-    account: agent,
-    address: fuji.vault,
-    abi: vaultAbi,
-    functionName: "execute",
-    args: [scan.to, scan.data, 0n, deadline, signature],
-  });
+  try {
+    await chain.simulateContract({
+      account: agent,
+      address: fuji.vault,
+      abi: vaultAbi,
+      functionName: "execute",
+      args: [scan.to, scan.data, 0n, deadline, signature],
+    });
+  } catch (err) {
+    const code = extractRevertCode(err);
+    if (code) throw new PolicyRejectionError(code);
+    throw err;
+  }
   return {
     signature,
     nonce: String(nonce),

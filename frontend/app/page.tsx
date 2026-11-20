@@ -55,6 +55,13 @@ type Report = {
       before: string;
       after: string;
     }[];
+    events?: {
+      name: "Transfer" | "Approval" | "ApprovalForAll";
+      asset: string;
+      from: string;
+      to: string;
+      amount: string;
+    }[];
   };
 };
 type Entry = { message: string; hash?: string; payment?: string };
@@ -481,6 +488,80 @@ export default function Home() {
                 </tbody>
               </table>
             </div>
+            {report.simulation.events && report.simulation.events.length > 0 && (
+              <>
+                <h3>Sự kiện giải mã (Decoded Events)</h3>
+                <div className="tablebox">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Sự kiện</th>
+                        <th>Tài sản</th>
+                        <th>Từ / Chủ sở hữu</th>
+                        <th>Đến / Spender</th>
+                        <th>Giá trị / Quyền</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {report.simulation.events.map((ev, idx) => {
+                        const isMusdc =
+                          ev.asset.toLowerCase() === state?.token.toLowerCase();
+                        const isNative =
+                          ev.asset.toLowerCase() ===
+                          "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
+                        const rawAmt = BigInt(ev.amount);
+                        const unlimited =
+                          (ev.name === "Approval" && rawAmt >= 2n ** 128n) ||
+                          (ev.name === "ApprovalForAll" && rawAmt === 1n);
+                        const formatted =
+                          ev.name === "ApprovalForAll"
+                            ? rawAmt === 1n
+                              ? "Toàn quyền (true)"
+                              : "Thu hồi (false)"
+                            : unlimited
+                              ? "Không giới hạn (MAX_UINT256)"
+                              : isMusdc
+                                ? formatUnits(rawAmt, 6) + " mUSDC"
+                                : isNative
+                                  ? formatUnits(rawAmt, 18) + " AVAX"
+                                  : ev.amount;
+                        return (
+                          <tr key={ev.name + ev.asset + idx}>
+                            <td>
+                              <b
+                                className={
+                                  unlimited ? "risk CRITICAL" : "risk SAFE"
+                                }
+                              >
+                                {ev.name}
+                              </b>
+                            </td>
+                            <td>
+                              {isMusdc
+                                ? "mUSDC"
+                                : isNative
+                                  ? "AVAX"
+                                  : short(ev.asset)}
+                            </td>
+                            <td title={ev.from}>{short(ev.from)}</td>
+                            <td title={ev.to}>{short(ev.to)}</td>
+                            <td>
+                              {unlimited ? (
+                                <strong className="risk CRITICAL">
+                                  {formatted}
+                                </strong>
+                              ) : (
+                                formatted
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
           </section>
         )}
         {tab === "agent" && logs.length > 0 && (

@@ -66,6 +66,13 @@ export function createMcp() {
         body: JSON.stringify(input),
       });
       const settled = res.headers.get("PAYMENT-RESPONSE");
+      const rawText = await res.text();
+      let parsedResult: unknown = { raw: rawText };
+      try {
+        parsedResult = JSON.parse(rawText);
+      } catch {
+        /* Preserve raw text when server returns non-JSON error body. */
+      }
       return {
         isError: !res.ok,
         content: [
@@ -73,7 +80,7 @@ export function createMcp() {
             type: "text",
             text: JSON.stringify({
               status: res.status,
-              result: await res.json(),
+              result: parsedResult,
               payment: settled ? decodePaymentResponseHeader(settled) : null,
             }),
           },

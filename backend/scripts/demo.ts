@@ -14,6 +14,7 @@ import {
 import { decodePaymentResponseHeader } from "@x402/fetch";
 import { withFork } from "../src/fork.ts";
 import { fuji, vaultAbi } from "../src/fuji.ts";
+import { extractRevertCode } from "../src/clearance.ts";
 import { seed } from "./sandbox.ts";
 import { paidFetch } from "../../mcp-server/src/server.ts";
 
@@ -210,6 +211,7 @@ await withFork(async (chain, block) => {
         message = "Bạn cho phép 3 mUSDC đến MockPartner. Hóa đơn mẫu đề xuất " +
           formatUnits(proposedAmount,6) + " mUSDC đến địa chỉ bị gắn cờ. " + report.explanationVi;
       } else if (action === "check") {
+        const head = await chain.getBlock();
         try {
           await chain.simulateContract({
             address: vault,
@@ -220,14 +222,30 @@ await withFork(async (chain, block) => {
               fuji.token,
               data,
               0n,
-              BigInt(Math.floor(Date.now() / 1000) + 120),
+              head.timestamp + 120n,
               "0x",
             ],
           });
         } catch (e) {
-          if (!String(e).includes("InvalidSecurityClearance")) throw e;
+          const code = extractRevertCode(e);
+          if (!code) throw e;
+          const labels: Record<string, string> = {
+            InvalidSecurityClearance:
+              "Hợp đồng GuardVault đã REVERT cứng: InvalidSecurityClearance() (từ chối lệnh thiếu clearance).",
+            TargetNotWhitelisted:
+              "Hợp đồng PolicyModule đã REVERT cứng: TargetNotWhitelisted() (người nhận không nằm trong whitelist).",
+            TxLimitExceeded:
+              "Hợp đồng PolicyModule đã REVERT cứng: TxLimitExceeded() (vượt trần mỗi giao dịch).",
+            DailyCapExceeded:
+              "Hợp đồng PolicyModule đã REVERT cứng: DailyCapExceeded() (vượt trần 24 giờ).",
+            AgentRevoked:
+              "Hợp đồng GuardVault đã REVERT cứng: AgentRevoked() (session key đã bị thu hồi).",
+            TokenNotWhitelisted:
+              "Hợp đồng PolicyModule đã REVERT cứng: TokenNotWhitelisted() (token không được phép).",
+          };
           return c.json({
-            message: "Hợp đồng đã từ chối lệnh thiếu clearance.",
+            message:
+              labels[code] ?? `Hợp đồng GuardVault đã REVERT cứng: ${code}().`,
             state: await state(),
           });
         }

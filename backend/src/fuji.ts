@@ -39,10 +39,21 @@ export const vaultAbi = parseAbi([
   "function spentInWindow() view returns (uint256)",
   "function execute(address target, bytes data, uint256 value, uint256 deadline, bytes signature)",
   "error InvalidSecurityClearance()",
+  "error ClearanceExpired()",
+  "error AgentRevoked()",
+  "error UnsupportedCall()",
+  "error TxLimitExceeded()",
+  "error DailyCapExceeded()",
+  "error TargetNotWhitelisted()",
+  "error TokenNotWhitelisted()",
 ]);
 export const policyAbi = parseAbi([
   "function targetWhitelist(address) view returns (bool)",
   "function check(address,address,uint256,uint256) view",
+  "error TxLimitExceeded()",
+  "error DailyCapExceeded()",
+  "error TargetNotWhitelisted()",
+  "error TokenNotWhitelisted()",
 ]);
 export const registryAbi = parseAbi([
   "function isFlagged(address) view returns (bool)",

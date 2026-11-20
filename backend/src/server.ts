@@ -2,40 +2,30 @@ import { pathToFileURL } from "node:url";
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { bodyLimit } from "hono/body-limit";
-import { fuji, isSame, scanSchema, type Scan } from "./fuji.ts";
+import { fuji, scanSchema, type Scan } from "./fuji.ts";
 import { withFork } from "./fork.ts";
 import { simulate } from "./simulation.ts";
 import { confirmedTransfer, reputation, review } from "./risk.ts";
-import { verifyIntent } from "./intent.ts";
-import { issue } from "./clearance.ts";
+import { matchesTransferIntent, verifyIntent } from "./intent.ts";
+import { issue, PolicyRejectionError } from "./clearance.ts";
 import { paidPath, paymentGate } from "./payments.ts";
 import { createAuditSink } from "./audit.ts";
 
 export async function analyze(scan: Scan, paid: boolean) {
-  const { sim, rules } = await withFork(async (client, block) => {
+  const { sim, rules, targets } = await withFork(async (client, block) => {
     const sim = await simulate(client, block, scan);
     const targets = await reputation(client, block, scan, sim);
-    return { sim, rules: review(scan, sim, targets) };
+    return { sim, rules: review(scan, sim, targets), targets };
   });
-  const verdict = await verifyIntent(scan, sim, rules);
+  const verdict = await verifyIntent(scan, sim, rules, targets);
   if (paid && verdict.verifier === "unavailable")
     throw Error("Model unavailable");
   const transfer = confirmedTransfer(scan, sim);
   let clearance = null;
   if (paid && verdict.riskLevel === "SAFE" && verdict.intentMatch) {
-    const intent = scan.userIntent.trim().toLowerCase();
-    // Signing accepts an unambiguous amount and destination, independently of model output.
-    const canonical =
-      transfer &&
-      [
-        transfer.recipient,
-        ...(isSame(transfer.recipient, fuji.partner) ? ["MockPartner"] : []),
-      ].some(
-        (to) =>
-          intent ===
-          ("Chuyển " + transfer.display + " mUSDC đến " + to).toLowerCase(),
-      );
-    if (transfer && canonical) clearance = await issue(scan, transfer);
+    // Signing requires an unambiguous amount and destination match, independent of model output.
+    const confirmed = transfer && matchesTransferIntent(scan.userIntent, transfer);
+    if (transfer && confirmed) clearance = await issue(scan, transfer);
     else
       return {
         ...rules,
@@ -87,7 +77,16 @@ export function createApp(gate = paymentGate(), analyzeTx = analyze) {
         const report = await analyzeTx(parsed.data, paid);
         if (report.verifier !== "unavailable") audit(parsed.data, report);
         return c.json(report);
-      } catch {
+      } catch (err) {
+        if (err instanceof PolicyRejectionError) {
+          return c.json(
+            {
+              error: err.message,
+              revertReason: err.code,
+            },
+            422,
+          );
+        }
         return c.json(
           {
             error:
