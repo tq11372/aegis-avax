@@ -36,6 +36,10 @@ Trong chat mới, mở thư mục repo rồi gửi: “Đọc HANDOFF.md và REA
 
 ## Tiếp tục từ đây
 
+**Triển khai công khai đang chạy.** Ví Console đã kết nối Fuji. Người dùng đã xác nhận tạo Aegis Audit (AEGIS), Proof of Authority, owner 0x181C7d53A5885c08D9aF5e9ed93220Ed5e98df92. Builder Hub đã trả [CreateSubnetTx trên Fuji P-Chain](https://build.avax.network/explorer/fuji/p-chain/tx/2ZCC26UT9PzMkHRBUhD7N5EfiAV26cXHDUYiLcnrskRSEdiy5f). Theo dõi wizard hiện có; tránh tạo một subnet khác. Chỉ ghi nhận hoàn tất khi có RPC hoạt động và biên nhận hợp đồng audit.
+
+**Kết quả wizard.** Builder Hub báo Deployment failed ở bước 6/8, Converting Subnet to L1. Lỗi UTXO thiếu 242451283 đơn vị nhỏ nhất, tương đương 0,242451283 AVAX testnet nếu tính theo nAVAX. RPC Fuji xác nhận giao dịch tạo subnet, owner P-Chain ghi trong CreateSubnetTx là P-fuji1yehhlfydqnld249akhl6w6afn7gqpns8c4q6xq. Trước khi cấp vốn cần xác định đúng tài khoản trả phí (wizard managed có thể dùng tài khoản khác ví Console). Bắt đầu ở My L1 Dashboard và Transaction Activity để tiếp tục subnet hiện có. Chưa xác nhận RPC Own L1 hoặc triển khai ThreatAuditLog trên L1.
+
 **Vòng 2 đang làm.** Console Wallet là ví riêng cho L1. Trước khi tạo thêm ví hoặc gửi giao dịch triển khai, đối chiếu trạng thái trong Builder Hub và biên nhận đã có. Lưu RPC, chain ID, địa chỉ hợp đồng và hash giao dịch khi đã xác nhận. Test chạy cục bộ bằng `npm run test:audit`. Lần đầu xác nhận sự kiện trên cả hai Anvil, phát hiện ID đã ghi và chuyển sang mạng dự phòng trong 15 ms khi endpoint chính từ chối kết nối. Bản demo Anvil luôn tắt ghi audit công khai.
 
 **Mốc kiểm thử Vòng 2 ngày 20/11.** Chrome for Testing đã chạy đạt khiên SAFE/CRITICAL từ trang web, popup CRITICAL và hai trường hợp tên miền. Extension dùng blocklist MetaMask, có bản dự phòng đóng gói tại commit nguồn 1567ec1f1d32f5a8880cdd5622584958f479772d. Lượt npm run test:audit sau cùng xác nhận bytecode, owner, reporter, ghi sự kiện, chặn ghi lặp và chuyển dự phòng 13 ms trên hai Anvil. Đã mở biểu mẫu tạo ví trong Builder Hub. Bước công khai kế tiếp là hoàn tất ví, kiểm tra nguồn gas P-Chain, tạo và xác minh Own L1. Slide, video và hồ sơ nộp còn mở.
