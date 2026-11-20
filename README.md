@@ -1,7 +1,26 @@
 # AegisAVAX
-AegisAVAX • Team1 Vietnam UniHack 2026. Mục tiêu của dự án là mô phỏng giao dịch trước khi ký và dùng hợp đồng thông minh để giới hạn quyền chi tiêu của AI agent trên Avalanche Fuji.
 
-Bảy hợp đồng đã triển khai và xác minh trên **Avalanche Fuji C-Chain**. [Địa chỉ, giao dịch và bằng chứng xác minh](#verified-contract-addresses)
+**Tường lửa giao dịch trước khi ký & Két bảo vệ AI Agent trên Avalanche** • Team1 Vietnam UniHack 2026.
+
+AegisAVAX chặn mất tiền cho người dùng Web3 và khóa cứng quyền chi tiêu của AI Agent bằng **2 lớp độc lập**:
+1. **Lớp 1 — Pre-Execution Firewall (Off-chain trên Anvil Fork):** Chạy thử calldata thô trên trạng thái thật của Avalanche Fuji để đọc **`State Diff`**, quét **5 luật rủi ro tất định** (`UNLIMITED_APPROVAL`, `DRAIN_PATTERN`, `ADDRESS_POISONING`, `UNVERIFIED_OR_SCAM_CONTRACT`, `ABNORMAL_SLIPPAGE_OR_DANGEROUS_CALL`), đối chiếu ý định bằng LLM (fail-closed) và chỉ cấp chữ ký **EIP-712 Security Clearance** khi `SAFE` & khớp ý định.
+2. **Lớp 2 — Cryptographic Guardrails (On-chain trên Avalanche Fuji):** Hợp đồng `GuardVault` + `PolicyModule` phi lưu ký cưỡng chế cứng `txLimit`, `dailyCap` (cửa sổ trượt 24 giờ dùng tìm kiếm nhị phân $O(\log n)$, giữ nguyên khi đổi session key), `tokenWhitelist`, `targetWhitelist`, xác thực chữ ký EIP-712 chống replay và nút **Kill Switch** (`revokeAgent()` / `pause()`).
+
+Bảy hợp đồng cốt lõi đã triển khai và xác minh mã nguồn (`exact_match`) trên **Avalanche Fuji C-Chain (`43113`)**. [Địa chỉ, giao dịch và bằng chứng xác minh](#verified-contract-addresses) · [Dàn ý Slide, Kịch bản Demo & Q&A](docs/PITCH_AND_DEMO.md) · [Nhật ký bàn giao](HANDOFF.md)
+
+```mermaid
+flowchart LR
+  User["Web User / Chrome Extension MV3"] -->|Miễn phí: /api/v1/web/verify-tx| FW
+  Agent["AI Agent / MCP Client (aegis-mcp)"] -->|x402: 0.005 mUSDC EIP-3009| FW
+  subgraph FW["Lớp 1 · Aegis Security Engine"]
+    Sim["Anvil Fork Simulator (Fuji state)"] --> Rules["5 Deterministic Risk Rules + ScamRegistry"]
+    Rules --> LLM["AI Intent Verifier (JSON tiếng Việt, fail-closed)"]
+    LLM -->|SAFE & intentMatch| Signer["EIP-712 Clearance Signer"]
+    LLM -->|MEDIUM / CRITICAL| Audit["ThreatAuditLog Worker (Own L1 -> Fuji fallback)"]
+  end
+  Signer -->|Signature + deadline + nonce| Vault["Lớp 2 · GuardVault + PolicyModule (Fuji 43113)"]
+  Vault -->|Kiểm tra limit, whitelist, Kill Switch| Target["MockPartner / ERC-20 Transfer"]
+```
 
 ## What it does
 
@@ -36,11 +55,11 @@ Bước 1 triển khai két `GuardVault` và bộ quy tắc `PolicyModule`. Ch�
 | MockPartner, MockDrainer | Hai địa chỉ mẫu để phân biệt người nhận được phép và địa chỉ bị gắn cờ. MockDrainer chỉ đóng vai địa chỉ thử nghiệm. |
 | ScamRegistry, ThreatAuditLog | Chủ registry quản lý cờ rủi ro. Reporter được cấp quyền ghi hash bằng chứng và mã giao dịch vào event; mỗi mã chỉ ghi một lần. |
 
-**Vì sao kiểm tra on-chain?** Nếu agent đề xuất sai người nhận hoặc số tiền, hợp đồng có thể từ chối ngay cả khi agent có session key hợp lệ. Thu hồi quyền có hiệu lực từ lúc giao dịch thu hồi được mạng xác nhận.
+**1. Vì sao phải kiểm tra on-chain? (*Why on-chain?*)** Dặn AI qua System Prompt hoặc lớp lọc off-chain có thể bị vượt qua bởi Prompt Injection hoặc rò rỉ khóa gọi API. Chỉ **Smart Contract on-chain** (`GuardVault` + `PolicyModule`) mới cưỡng chế cứng bằng mật mã ngay lúc thực thi EVM: dù agent có session key hợp lệ và cố gọi thẳng hợp đồng bỏ qua Lớp 1, giao dịch vẫn `REVERT` với mã lỗi tường minh (`InvalidSecurityClearance`, `TargetNotWhitelisted`, `TxLimitExceeded`, `DailyCapExceeded`, `AgentRevoked`). Thu hồi quyền (`revokeAgent()` / `pause()`) tăng `nonce` ngay khi giao dịch được mạng xác nhận, vô hiệu mọi chữ ký cũ.
 
-**Vì sao chọn Avalanche?** Fuji C-Chain cho phép thử cùng một luồng ký, thực thi EVM và kiểm tra biên nhận trên explorer bằng AVAX testnet. Độ trễ thu hồi quyền trên Fuji cần được đo trong bản demo.
+**2. Vì sao chọn Avalanche? (*Why Avalanche?*)** Avalanche C-Chain (Fuji `43113`) có thời gian tạo khối ngắn và độ trễ chốt cuối nhanh giúp nút **Kill Switch** có hiệu lực tức thì và fork mô phỏng bám sát trạng thái mới nhất; phí gas siêu thấp (cả 13 giao dịch triển khai + cấu hình 7 hợp đồng tốn `0,00000000070361181 AVAX testnet`) phù hợp cho vi thanh toán **`0,005 mUSDC / lượt quét`** qua `x402` (EIP-3009). Đồng thời kiến trúc **Avalanche L1** cho phép tách `ThreatAuditLog` sang L1 riêng kèm tự động chuyển dự phòng về Fuji trong `12–15 ms`.
 
-**Mô hình sử dụng.** Route web miễn phí. Route agent dùng x402 v2 với giá 5.000 đơn vị mUSDC (0,005 mUSDC) cho mỗi lần kiểm tra. Backend chạy mô phỏng trên một Anvil fork riêng cho mỗi yêu cầu. Phạm vi demo là testnet, dùng token thử nghiệm. [Trạng thái và tài liệu bàn giao](HANDOFF.md)
+**3. Mô hình doanh thu & Ranh giới pháp lý tại Việt Nam (*Where does the money come from & Legal limits in VN?*)** Người dùng cá nhân sử dụng Web UI (`Tx Firewall`) và Chrome Extension **miễn phí**. Các AI Agent / dApp bên thứ 3 trả phí vi mô **`0,005 mUSDC / lượt`** (`5.000` đơn vị) qua giao thức **`x402` v2 (EIP-3009)** trên route `/api/v1/agent/verify-tx` và MCP server `aegis-mcp` mà không cần tạo tài khoản. Về pháp lý: AegisAVAX là công cụ phần mềm bảo mật **phi lưu ký (`non-custodial`)** — không giữ hộ tài sản, **không phát hành token đầu cơ**, không huy động vốn; phạm vi hiện tại chạy hoàn toàn trên Testnet với token thử nghiệm. [Dàn ý Slide, Kịch bản Demo & Q&A](docs/PITCH_AND_DEMO.md) · [Trạng thái và tài liệu bàn giao](HANDOFF.md)
 
 ## How to run
 
@@ -176,3 +195,9 @@ Ngày 20/11/2026, Fuji (chain ID `43113`) xác nhận 13 giao dịch từ block 
 | ThreatAuditLog | [`0x1c755dE79A9bFd54Cf0c559C97FfeDC58BF1Fec6`](https://testnet.snowtrace.io/address/0x1c755dE79A9bFd54Cf0c559C97FfeDC58BF1Fec6) | [Avalanche Builder Hub](https://build.avax.network/api/verify/sourcify/v2/contract/43113/0x1c755dE79A9bFd54Cf0c559C97FfeDC58BF1Fec6) | [Giao dịch tạo](https://testnet.snowtrace.io/tx/0xe80d998b763eac04d524baf4af711a7469955d68aeca2b106f364769154eefb1) |
 
 Tại block `61380210`, két giữ **100 mUSDC**, đang hoạt động và yêu cầu chữ ký clearance. Hạn mức là **10 mUSDC/giao dịch** và **25 mUSDC/24 giờ**. MockPartner nằm trong danh sách người nhận được phép. MockDrainer đã được gắn cờ và không có quyền nhận từ agent. [Biên nhận nạp két](https://testnet.snowtrace.io/tx/0x99e3a10babd08e6c17ffbb43021956e12426bb25347b686e0078221ea4cf231f)
+
+### Trạng thái Own Avalanche L1 (`Aegis Audit`, `AEGIS`, EVM Chain ID `99321`)
+
+- **Subnet (`CreateSubnetTx` trên Fuji P-Chain):** [`KmstuFWyaPpv5H6WktTxpuwE7NzCBANM1KfNCWirk8rFaTaH2`](https://build.avax.network/explorer/fuji/p-chain/tx/KmstuFWyaPpv5H6WktTxpuwE7NzCBANM1KfNCWirk8rFaTaH2)
+- **Blockchain (`CreateChainTx` trên Fuji P-Chain):** [`2NLmJSAC471YuC8Eyiyjp7FtrEdMuFWXeL2guuFKH2CyUm5NmF`](https://build.avax.network/explorer/fuji/p-chain/tx/2NLmJSAC471YuC8Eyiyjp7FtrEdMuFWXeL2guuFKH2CyUm5NmF)
+- **Cơ chế dự phòng `ThreatAuditLog`:** Đã kiểm chứng trên hai node Anvil độc lập qua `npm run test:audit` (tự động ghi sự kiện, chống ghi trùng ID và chuyển dự phòng trong `12–15 ms` khi RPC L1 chính từ chối kết nối). Khi dịch vụ Managed Testnet Node của Builder Hub hoàn tất cấp node validator cho subnet trên, chỉ cần chạy `DeployAudit.s.sol` và `npm run verify:audit`; trong thời gian chờ, hệ thống dùng `ThreatAuditLog` đã xác minh trên Fuji (`0x1c755dE79A9bFd54Cf0c559C97FfeDC58BF1Fec6`).
