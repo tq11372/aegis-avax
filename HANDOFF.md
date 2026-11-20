@@ -36,6 +36,8 @@ Trong chat mới, mở thư mục repo rồi gửi: “Đọc HANDOFF.md và REA
 
 ## Tiếp tục từ đây
 
+**Chốt kỹ thuật Vòng 1 ngày 20/11.** Chạy lại từ commit `7f31aa0` trước khi mở Vòng 2: 27/27 Foundry, 6/6 Node, typecheck đạt. Lượt `npm run eval` trên cùng fork 61382536 có 10/10 lệnh sạch, 20/20 ca chặn đúng, 0 lỗi dịch vụ, số dư 47 → 47 mUSDC. Bốn dịch vụ Qwen, web, backend và demo trả HTTP 200. Người dùng đã cho làm Vòng 2 sớm và để việc nộp bài đến sau Vòng 2.
+
 **Mốc mới nhất.** Hai tab đã hiển thị trên Chrome. Bản build production và bộ 30 ca đánh giá đạt ở block nguồn 61382536. Qwen đã duyệt 10/10 lệnh sạch, các lớp kiểm tra chặn 20/20 đề xuất rủi ro, két giữ 50 mUSDC trong phép đo. Nhóm hóa đơn kiểm tra giao dịch đầu ra sau khi đọc tài liệu. Nếu làm tiếp phần dự thi, ưu tiên slide tiếng Việt và video 2–3 phút theo `../doc.md`. Phần thu giọng, xuất bản video, liên kết slide và nộp bài còn mở. Vòng 2 theo khung thời gian ghi trong đề. Giữ toàn bộ thao tác demo trên Anvil theo lựa chọn của người dùng.
 
 1. Ở gốc repo chạy `npm ci`, `npm run typecheck`, `npm test`. Chạy `forge build` trong `contracts/` trước khi chạy `npm run test:fork` từ gốc repo. Trên máy dự án, có thể đặt `ANVIL_BIN` thành đường dẫn tuyệt đối tới `../.aegis-tools/node_modules/@foundry-rs/anvil-win32-amd64/bin/anvil.exe`. Lệnh smoke dùng ví tạm và một model HTTP fixture.
