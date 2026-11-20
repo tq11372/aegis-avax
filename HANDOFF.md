@@ -43,3 +43,24 @@ Trong chat mới, mở thư mục repo rồi gửi: “Đọc HANDOFF.md và REA
 3. Người dùng chọn mô hình cục bộ và chỉ chạy giao dịch demo trên Anvil. Fuji là nguồn dữ liệu chỉ đọc. Qwen2.5-1.5B-Instruct Q4_K_M và llama.cpp b12572 đã cài ngoài repo. Để khởi động lại, dùng `npm run model:local` rồi `npm run test:fork:llm`. Lần chạy đạt có hash thanh toán Anvil `0xbc00ea57cf5d151b0b4aee135b0edaa7cfd748efc6c1fef7730825d13a1f5279` và hash thực thi Anvil `0x42fe331e3d2f793a8ceea5a1bb368a3faaab7a183a6efcd7a44e05863a59010b`. Ban đầu model ghi SAFE cho chênh lệch 7/3; mã đối chiếu ý định hiện chặn trường hợp đó trước khi ký.
 4. Mở ba terminal ở thư mục repo. Chạy lần lượt `npm run model:local`, `npm run dev:demo` và `npm run dev:web` nếu dịch vụ tương ứng chưa chạy. Mở http://127.0.0.1:3000. Phiên demo mới tạo két Anvil có 50 mUSDC và agent tạm. Backend dùng cổng 4021, bộ điều khiển dùng 4022. Chạy `npm run eval` khi két rảnh. Lệnh `node backend/test/demo-controls.ts` thử hạn mức, whitelist, khóa/mở agent, từ chối lệnh thiếu chữ ký và hai biên nhận qua giao diện HTTP. Phép thử này chi 3 mUSDC từ két cục bộ và phí 0,005 mUSDC từ agent.
 5. Giao dịch demo chỉ trên Anvil. Đọc biên nhận Anvil ngay trong phiên đang chạy. Explorer ở chân trang mở địa chỉ GuardVault công khai của Bước 1. Các biến môi trường có khóa chỉ lưu cục bộ. Trên máy khác cần chuẩn bị lại Node, Foundry, runtime và model theo README.
+
+## Chuẩn bị quay video 2 phút 45 giây
+
+Kiểm tra bàn giao trên máy ngày 20/11: giao diện production trả HTTP 200, có nút dùng địa chỉ ví, két còn 47 mUSDC sau phép thử có thực thi, agent đang hoạt động, hạn mức 10/25. Trong `contracts/`, lệnh PowerShell bên dưới chạy bộ hợp đồng bằng compiler có sẵn trên máy. Lần kiểm tra lại đạt 27/27.
+
+```powershell
+& ../../.aegis-tools/node_modules/@foundry-rs/forge-win32-amd64/bin/forge.exe test --offline --use ../../.aegis-tools/solc-0.8.30.exe
+```
+
+Mốc mã nguồn đã kiểm tra là `156bb12`. Production build, typecheck và 6/6 kiểm thử Node đạt. Kiểm thử MCP cuối cùng quan sát hash thanh toán Anvil `0x52c7886f08ac0f9b64e6f10c00064903db6a372ed8305908d0eb3322076d5102`, hash thực thi Anvil `0x03fa548ea9cfab5841ea3c092b47f7b9a0fff1e4dcde1425dac1e0d9304cc0f9`. Kiểm thử qua proxy của frontend cũng đạt sau khi cập nhật kịch bản hóa đơn và kiểm tra đúng lỗi `InvalidSecurityClearance`. Phiên giao diện đã chi thử 3 mUSDC. Muốn quay từ số dư 50, khởi động lại `dev:demo` và tải lại trang.
+
+| Thời gian | Thao tác trên màn hình và lời thuyết minh |
+| --- | --- |
+| 0:00–0:25 | Mở Tx Firewall. “Khi giao tiền cho AI, làm sao biết giao dịch nó ký thực sự trả đúng người, đúng số tiền? AegisAVAX mô phỏng trước khi ký. Hợp đồng két kiểm tra thêm một lần ngay lúc chi.” |
+| 0:25–0:55 | Mở AI Agent Sandbox, chỉ số dư đầu. Bấm chuyển 3 mUSDC. Mở hai biên nhận Anvil trong lịch sử. Chỉ rõ phí 0,005 mUSDC từ agent và 3 mUSDC từ két là hai khoản riêng. |
+| 0:55–1:25 | Qua Tx Firewall, chọn phê duyệt vô hạn rồi mô phỏng. Chỉ vào cờ `UNLIMITED_APPROVAL`. Giải thích một approval có thể cấp quyền rộng dù số dư hiện tại chưa đổi. |
+| 1:25–2:05 | Qua tab agent, bấm kiểm tra hóa đơn sai người nhận. Đọc ý định, số tiền đề xuất và lý do từ chối. Bấm kiểm tra lệnh thiếu chữ ký để cho thấy két từ chối ở lớp hợp đồng. Bấm Kill switch và chỉ trạng thái agent đã khóa. |
+| 2:05–2:35 | Mở GuardVault trên Fuji Explorer bằng liên kết ở chân trang. Phân biệt địa chỉ triển khai thật và biên nhận demo cục bộ. Mở bảng 30 ca ở README, nói rõ phạm vi đo và số dư 50 → 50 trong lượt mô phỏng. |
+| 2:35–2:45 | Hiện tên AegisAVAX và địa chỉ GitHub. “Bạn có thể chạy lại cả luồng này trên máy với Anvil và Qwen.” |
+
+Chuẩn bị trước một tab README tại mục đánh giá và một tab hợp đồng công khai. Khi quay, giữ từng kết quả đủ lâu để đọc. Liên kết xem video và slide được bổ sung sau khi chủ dự án duyệt bản ghi và quyền chia sẻ.
