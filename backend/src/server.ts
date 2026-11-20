@@ -9,6 +9,7 @@ import { confirmedTransfer, reputation, review } from "./risk.ts";
 import { verifyIntent } from "./intent.ts";
 import { issue } from "./clearance.ts";
 import { paidPath, paymentGate } from "./payments.ts";
+import { createAuditSink } from "./audit.ts";
 
 export async function analyze(scan: Scan, paid: boolean) {
   const { sim, rules } = await withFork(async (client, block) => {
@@ -39,7 +40,7 @@ export async function analyze(scan: Scan, paid: boolean) {
       return {
         ...rules,
         verifier: verdict.verifier,
-        riskLevel: "MEDIUM",
+        riskLevel: "MEDIUM" as const,
         intentMatch: false,
         explanationVi:
           "Lệnh chưa khớp mẫu chuyển mUSDC của két với đúng số tiền và người nhận.",
@@ -52,6 +53,7 @@ export async function analyze(scan: Scan, paid: boolean) {
 
 export function createApp(gate = paymentGate(), analyzeTx = analyze) {
   const app = new Hono();
+  const audit = createAuditSink(process.env);
   let running = 0;
   app.use("*", bodyLimit({ maxSize: 32768 }));
   app.get("/health", (c) => c.json({ chainId: 43113 }));
@@ -82,7 +84,9 @@ export function createApp(gate = paymentGate(), analyzeTx = analyze) {
       if (running >= 3) return c.json({ error: "Simulator busy" }, 429);
       running++;
       try {
-        return c.json(await analyzeTx(parsed.data, paid));
+        const report = await analyzeTx(parsed.data, paid);
+        if (report.verifier !== "unavailable") audit(parsed.data, report);
+        return c.json(report);
       } catch {
         return c.json(
           {

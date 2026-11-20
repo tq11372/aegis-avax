@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <title>AegisAVAX</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <h1>AegisAVAX</h1>
+    <p id="domain" role="status">Đang kiểm tra tên miền…</p>
+    <form>
+      <label for="input">Giao dịch cần mô phỏng (JSON)</label
+      ><textarea
+        id="input"
+        rows="6"
+        required
+        spellcheck="false"
+        placeholder='{"from":"0x…","to":"0x…","data":"0x…","value":"0","userIntent":"…"}'
+      ></textarea>
+      <button>Kiểm tra giao dịch</button>
+    </form>
+    <output id="result" role="status"></output>
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>

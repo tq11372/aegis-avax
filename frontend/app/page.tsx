@@ -140,11 +140,13 @@ export default function Home() {
     setError("");
     setReport(null);
     try {
+      const transaction = { from, to, data, value, userIntent: intent };
+      window.postMessage({ type: "aegis:scan-request", transaction }, location.origin);
       setReport(
         await api("/api/v1/web/verify-tx", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ from, to, data, value, userIntent: intent }),
+          body: JSON.stringify(transaction),
         }),
       );
     } catch (e) {

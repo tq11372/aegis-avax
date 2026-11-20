@@ -1,0 +1,39 @@
+body {
+  width: 320px;
+  margin: 18px;
+  font: 14px/1.5 system-ui;
+  color: #142c45;
+}
+h1 {
+  font-size: 22px;
+  margin: 0;
+}
+label {
+  font-weight: 600;
+}
+textarea {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 8px 0;
+  border: 1px solid #9baec1;
+  border-radius: 6px;
+  padding: 7px;
+}
+button {
+  background: #1956a2;
+  border: 0;
+  color: white;
+  padding: 9px 14px;
+  border-radius: 6px;
+}
+output {
+  display: block;
+  margin: 12px 0;
+}
+output[data-level="CRITICAL"] {
+  color: #932134;
+}
+output[data-level="SAFE"] {
+  color: #116042;
+}

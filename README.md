@@ -44,6 +44,22 @@ Bước 1 triển khai két `GuardVault` và bộ quy tắc `PolicyModule`. Ch�
 
 ## How to run
 
+### Tiện ích Chrome và nhật ký Vòng 2
+
+Trong `chrome://extensions`, bật Developer mode, chọn Load unpacked và chọn thư mục `extension/` của repo. Bấm mô phỏng trong tab Tx Firewall để xem kết quả ở góc trang. Popup cũng nhận JSON gồm `from`, `to`, `data`, `value`, `userIntent`. Khi mở popup, tiện ích so tên miền của tab với bản danh sách MetaMask tải về máy. Nguồn dữ liệu được cập nhật sau 24 giờ khi dùng. Ví và khóa ký nằm ngoài tiện ích. [Nguồn dữ liệu tên miền](https://github.com/MetaMask/eth-phishing-detect)
+
+Để kiểm thử extension trong một hồ sơ Chromium tạm, chạy ba dịch vụ demo bên trên, `npx playwright install chromium`, rồi `npm run test:extension`. Chạy `npm run test:audit` để tự tạo hai Anvil, ghi và đọc sự kiện `ThreatLogged` trên cả hai mạng, kiểm tra ID trùng và thời gian chuyển dự phòng.
+
+Để triển khai lên **Own L1 testnet**, tạo chain EVM trong Builder Console, khởi chạy validator, lưu URL RPC và lấy chain ID từ chính RPC. Phân bổ gas native cho deployer và reporter. Đặt `AUDIT_L1_RPC_URL`, `AUDIT_L1_CHAIN_ID`, `DEPLOYER_ADDRESS`, `AUDIT_REPORTER_ADDRESS` trong môi trường terminal. Trong `contracts/`, chạy lệnh sau để mô phỏng. Sau khi xác nhận chain ID, chạy lại với `--broadcast --account <tên-keystore>` để ký và lưu địa chỉ từ biên nhận triển khai. [Avalanche Builder Console](https://build.avax.network/console/create-l1)
+
+```powershell
+forge script script/DeployAudit.s.sol:DeployAudit --rpc-url $env:AUDIT_L1_RPC_URL --sender $env:DEPLOYER_ADDRESS
+```
+
+Sau khi điền địa chỉ mới vào cấu hình, chạy `npm run verify:audit` ở gốc repo. Lệnh chỉ đọc chain ID, block, bytecode thực tế, owner và quyền reporter. Lưu JSON kết quả cùng biên nhận triển khai và cấp quyền trong bàn giao. Việc tạo L1 và validator được đối chiếu riêng trên Builder Hub.
+
+Đặt địa chỉ mới vào `AUDIT_LOG_CONTRACT_ADDRESS`. Backend dùng `AUDIT_REPORTER_PRIVATE_KEY` của ví đã được cấp quyền và nạp gas để ghi hash cho các kết quả MEDIUM và CRITICAL. Muốn dùng dự phòng, đặt `AUDIT_FALLBACK_RPC_URL` trỏ tới Fuji và `AUDIT_FALLBACK_CONTRACT_ADDRESS` trỏ tới ThreatAuditLog đã xác minh bên dưới. Cùng một reporter cần có quyền và gas trên cả hai mạng. Worker kiểm tra chain ID, quyền và mô phỏng trước khi phát giao dịch. Khi lỗi xảy ra trước khi phát, worker có thể đổi mạng. Nếu chưa rõ kết quả sau khi phát, kiểm tra biên nhận trên mạng vừa dùng. Backend xử lý nhật ký riêng để giao diện vẫn trả kết quả mô phỏng. Hàng đợi nằm trong bộ nhớ và có giới hạn 32 báo cáo.
+
 ### Backend và MCP
 
 Từ thư mục gốc, dùng Node.js 22.18 trở lên và Anvil trên PATH (hoặc đặt đường dẫn trong `ANVIL_BIN`). Trên PowerShell:

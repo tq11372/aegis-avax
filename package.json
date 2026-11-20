@@ -15,6 +15,9 @@
     "dev:mcp": "npm run start -w mcp-server",
     "typecheck": "tsc --noEmit",
     "test:fork": "node backend/test/fork-smoke.ts",
+    "test:audit": "node --env-file-if-exists=.env backend/test/audit-smoke.ts",
+    "verify:audit": "node --env-file-if-exists=.env backend/scripts/verify-audit.ts",
+    "test:extension": "node evals/extension-smoke.mjs",
     "test:fork:llm": "node --env-file=.env backend/test/fork-smoke.ts --local-model",
     "model:local": "node --env-file=.env backend/scripts/local-model.ts",
     "dev:demo": "node --env-file=.env backend/scripts/demo.ts",
@@ -24,6 +27,7 @@
   },
   "devDependencies": {
     "@types/node": "^24",
+    "playwright": "^1.65.1",
     "typescript": "^5.9.3"
   }
 }

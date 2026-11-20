@@ -17,7 +17,7 @@ Cập nhật ngày 20/11/2026, giờ Việt Nam. Dự án Team1 Vietnam UniHack 
 | Bước 1 · Triển khai Fuji | Hoàn thành | Commit `581595c`. Chain 43113, bảy hợp đồng đã xác minh, 13/13 biên nhận thành công. Tại block 61380210, két có 100 mUSDC, hạn mức 10/lệnh và 25/24 giờ. |
 | Bước 2 · Backend và MCP | Đã chạy với Qwen thật trên Anvil | Commit nền `334376f`. Lệnh sạch qua MCP, EIP-3009, EIP-712 và GuardVault thành công; ý định lệch số tiền, approval không giới hạn và lệnh thiếu chữ ký bị chặn. |
 | Bước 3 · Demo và đánh giá | Đã chạy hai tab trên Chrome và 30 ca trên Anvil | `frontend/` gồm Tx Firewall và AI Agent Sandbox. `evals/run_eval.ts` in kết quả từng ca, precision, recall, block rate và số dư két. Xem kết quả theo phiên ở README. |
-| Vòng 2 | Chờ Vòng 1 | Avalanche L1 cho audit log và `extension/` MV3 theo điều kiện thời gian trong đề bài. |
+| Vòng 2 | Đang thực hiện | Mốc Vòng 1 đã đẩy là `d576a8f`. Đã viết extension MV3, script deploy ThreatAuditLog và bộ ghi nhật ký có fallback. Đã xác minh sự kiện trên hai Anvil riêng. Đang kết nối ví và chuẩn bị Own L1 trên Fuji. |
 
 ## Quyết định cần giữ
 
@@ -36,9 +36,13 @@ Trong chat mới, mở thư mục repo rồi gửi: “Đọc HANDOFF.md và REA
 
 ## Tiếp tục từ đây
 
+**Vòng 2 đang làm.** Console Wallet là ví riêng cho L1. Trước khi tạo thêm ví hoặc gửi giao dịch triển khai, đối chiếu trạng thái trong Builder Hub và biên nhận đã có. Lưu RPC, chain ID, địa chỉ hợp đồng và hash giao dịch khi đã xác nhận. Test chạy cục bộ bằng `npm run test:audit`. Lần đầu xác nhận sự kiện trên cả hai Anvil, phát hiện ID đã ghi và chuyển sang mạng dự phòng trong 15 ms khi endpoint chính từ chối kết nối. Bản demo Anvil luôn tắt ghi audit công khai.
+
+**Mốc kiểm thử Vòng 2 ngày 20/11.** Chrome for Testing đã chạy đạt khiên SAFE/CRITICAL từ trang web, popup CRITICAL và hai trường hợp tên miền. Extension dùng blocklist MetaMask, có bản dự phòng đóng gói tại commit nguồn 1567ec1f1d32f5a8880cdd5622584958f479772d. Lượt npm run test:audit sau cùng xác nhận bytecode, owner, reporter, ghi sự kiện, chặn ghi lặp và chuyển dự phòng 13 ms trên hai Anvil. Đã mở biểu mẫu tạo ví trong Builder Hub. Bước công khai kế tiếp là hoàn tất ví, kiểm tra nguồn gas P-Chain, tạo và xác minh Own L1. Slide, video và hồ sơ nộp còn mở.
+
 **Chốt kỹ thuật Vòng 1 ngày 20/11.** Chạy lại từ commit `7f31aa0` trước khi mở Vòng 2: 27/27 Foundry, 6/6 Node, typecheck đạt. Lượt `npm run eval` trên cùng fork 61382536 có 10/10 lệnh sạch, 20/20 ca chặn đúng, 0 lỗi dịch vụ, số dư 47 → 47 mUSDC. Bốn dịch vụ Qwen, web, backend và demo trả HTTP 200. Người dùng đã cho làm Vòng 2 sớm và để việc nộp bài đến sau Vòng 2.
 
-**Mốc mới nhất.** Hai tab đã hiển thị trên Chrome. Bản build production và bộ 30 ca đánh giá đạt ở block nguồn 61382536. Qwen đã duyệt 10/10 lệnh sạch, các lớp kiểm tra chặn 20/20 đề xuất rủi ro, két giữ 50 mUSDC trong phép đo. Nhóm hóa đơn kiểm tra giao dịch đầu ra sau khi đọc tài liệu. Nếu làm tiếp phần dự thi, ưu tiên slide tiếng Việt và video 2–3 phút theo `../doc.md`. Phần thu giọng, xuất bản video, liên kết slide và nộp bài còn mở. Vòng 2 theo khung thời gian ghi trong đề. Giữ toàn bộ thao tác demo trên Anvil theo lựa chọn của người dùng.
+**Kết quả lượt demo Vòng 1 ban đầu.** Hai tab đã hiển thị trên Chrome. Bản build production và bộ 30 ca đánh giá đạt ở block nguồn 61382536. Qwen đã duyệt 10/10 lệnh sạch, các lớp kiểm tra chặn 20/20 đề xuất rủi ro, két giữ 50 mUSDC trong phép đo. Nhóm hóa đơn kiểm tra giao dịch đầu ra sau khi đọc tài liệu. Nếu làm tiếp phần dự thi, ưu tiên slide tiếng Việt và video 2–3 phút theo `../doc.md`. Phần thu giọng, xuất bản video, liên kết slide và nộp bài còn mở. Người dùng đã cho bắt đầu Vòng 2 sớm. Giữ toàn bộ thao tác demo trên Anvil theo lựa chọn của người dùng.
 
 1. Ở gốc repo chạy `npm ci`, `npm run typecheck`, `npm test`. Chạy `forge build` trong `contracts/` trước khi chạy `npm run test:fork` từ gốc repo. Trên máy dự án, có thể đặt `ANVIL_BIN` thành đường dẫn tuyệt đối tới `../.aegis-tools/node_modules/@foundry-rs/anvil-win32-amd64/bin/anvil.exe`. Lệnh smoke dùng ví tạm và một model HTTP fixture.
 2. Đã quan sát tại block Fuji `61380649`: thử chuyển 3 mUSDC trên fork làm số dư két 100 → 97 và MockPartner 0 → 3. Trong smoke test tích hợp, MCP đã trả qua x402: người nhận phí tăng đúng 5.000 đơn vị, két thử chuyển đúng 3 mUSDC, chữ ký thiếu bị từ chối với `InvalidSecurityClearance`. Đây là giao dịch trên Anvil; dùng giao dịch ở README cho bằng chứng triển khai công khai.

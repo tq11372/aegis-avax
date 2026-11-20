@@ -30,6 +30,7 @@ await withFork(async (chain, block) => {
       env: {
         ...process.env,
         PORT: "4021",
+        AUDIT_REPORTER_PRIVATE_KEY: "",
         FUJI_RPC_URL: local,
         GUARD_VAULT_ADDRESS: vault,
         POLICY_MODULE_ADDRESS: policy,

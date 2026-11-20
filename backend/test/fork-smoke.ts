@@ -81,6 +81,7 @@ await withFork(async (sandbox) => {
       GUARD_VAULT_ADDRESS: vault,
       POLICY_MODULE_ADDRESS: policy,
       RELAYER_PRIVATE_KEY: keys.relayer,
+      AUDIT_REPORTER_PRIVATE_KEY: "",
       X402_FACILITATOR_URL: "",
       AEGIS_SIGNER_PRIVATE_KEY: keys.signer,
       LLM_BASE_URL: realModel
