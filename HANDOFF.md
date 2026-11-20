@@ -15,7 +15,7 @@ Cập nhật ngày 20/11/2026, giờ Việt Nam. Dự án Team1 Vietnam UniHack 
 | --- | --- | --- |
 | Bước 1 · Hợp đồng và Foundry | Hoàn thành | Commit `6d0856d`. 27/27 test đạt, gồm 256 lần fuzz cho một bài. |
 | Bước 1 · Triển khai Fuji | Hoàn thành | Commit `581595c`. Chain 43113, bảy hợp đồng đã xác minh, 13/13 biên nhận thành công. Tại block 61380210, két có 100 mUSDC, hạn mức 10/lệnh và 25/24 giờ. |
-| Bước 2 · Backend và MCP | Đã kiểm thử trên fork | `backend/` và `mcp-server/` đã có API web, x402, MCP và ký EIP-712. TypeScript đạt, 5/5 test đạt, smoke test qua client MCP đạt. Mô hình thật và demo trả phí trên Fuji công khai còn chờ cấu hình. |
+| Bước 2 · Backend và MCP | Đã chạy với Qwen thật trên Anvil | Commit nền `334376f`. Lệnh sạch qua MCP, EIP-3009, EIP-712 và GuardVault thành công; ý định lệch số tiền, approval không giới hạn và lệnh thiếu chữ ký bị chặn. |
 | Bước 3 · Demo và đánh giá | Chờ Bước 2 | `frontend/` gồm Tx Firewall và AI Agent Sandbox. `evals/` dành cho 25–30 kịch bản và số liệu đo được. |
 | Vòng 2 | Chờ Vòng 1 | Avalanche L1 cho audit log và `extension/` MV3 theo điều kiện thời gian trong đề bài. |
 
@@ -38,5 +38,5 @@ Trong chat mới, mở thư mục repo rồi gửi: “Đọc HANDOFF.md và REA
 
 1. Ở gốc repo chạy `npm ci`, `npm run typecheck`, `npm test`. Chạy `forge build` trong `contracts/` trước khi chạy `npm run test:fork` từ gốc repo. Trên máy dự án, có thể đặt `ANVIL_BIN` thành đường dẫn tuyệt đối tới `../.aegis-tools/node_modules/@foundry-rs/anvil-win32-amd64/bin/anvil.exe`. Lệnh smoke dùng ví tạm và một model HTTP fixture.
 2. Đã quan sát tại block Fuji `61380649`: thử chuyển 3 mUSDC trên fork làm số dư két 100 → 97 và MockPartner 0 → 3. Trong smoke test tích hợp, MCP đã trả qua x402: người nhận phí tăng đúng 5.000 đơn vị, két thử chuyển đúng 3 mUSDC, chữ ký thiếu bị từ chối với `InvalidSecurityClearance`. Đây là giao dịch trên Anvil; dùng giao dịch ở README cho bằng chứng triển khai công khai.
-3. Bước kế tiếp là cấu hình endpoint và tên model thật, kiểm tra cả ý định khớp/lệch. Đọc mẫu `.env.example` và mục Backend trong README. Khi demo trên Fuji, dùng signer tương ứng với `GuardVault.signer()`, payer có mUSDC và relayer có AVAX testnet. Ghi hash thanh toán và thực thi sau khi RPC xác nhận.
+3. Người dùng chọn mô hình cục bộ và chỉ chạy giao dịch demo trên Anvil. Fuji là nguồn dữ liệu chỉ đọc. Qwen2.5-1.5B-Instruct Q4_K_M và llama.cpp b12572 đã cài ngoài repo. Để khởi động lại, dùng `npm run model:local` rồi `npm run test:fork:llm`. Lần chạy đạt có hash thanh toán Anvil `0xbc00ea57cf5d151b0b4aee135b0edaa7cfd748efc6c1fef7730825d13a1f5279` và hash thực thi Anvil `0x42fe331e3d2f793a8ceea5a1bb368a3faaab7a183a6efcd7a44e05863a59010b`. Ban đầu model ghi SAFE cho chênh lệch 7/3; mã đối chiếu ý định hiện chặn trường hợp đó trước khi ký.
 4. Sau khi khép lại Bước 2, chuyển sang giao diện ở `frontend/` và bộ đánh giá ở `evals/`. Các biến môi trường có khóa chỉ lưu cục bộ.

@@ -130,6 +130,16 @@ await withFork(async (sandbox) => {
   model.listen(0, "127.0.0.1");
   await once(model, "listening");
   const port = (model.address() as AddressInfo).port;
+  const realModel = process.argv.includes("--local-model");
+  if (realModel)
+    assert.ok(
+      process.env.LLM_BASE_URL &&
+        ["127.0.0.1", "localhost", "[::1]"].includes(
+          new URL(process.env.LLM_BASE_URL).hostname,
+        ) &&
+        process.env.LLM_MODEL,
+      "Configure a local model endpoint in .env",
+    );
   // A separate process loads the same backend with the locally deployed vault and throwaway roles.
   const start = new URL("./smoke-server.ts", import.meta.url);
   const child = spawn(process.execPath, [fileURLToPath(start)], {
@@ -140,8 +150,10 @@ await withFork(async (sandbox) => {
       RELAYER_PRIVATE_KEY: keys.relayer,
       X402_FACILITATOR_URL: "",
       AEGIS_SIGNER_PRIVATE_KEY: keys.signer,
-      LLM_BASE_URL: "http://127.0.0.1:" + port,
-      LLM_MODEL: "integration-fixture",
+      LLM_BASE_URL: realModel
+        ? process.env.LLM_BASE_URL
+        : "http://127.0.0.1:" + port,
+      LLM_MODEL: realModel ? process.env.LLM_MODEL : "integration-fixture",
       LLM_API_KEY: "",
       X402_PAY_TO: fuji.owner,
     },
@@ -187,7 +199,22 @@ await withFork(async (sandbox) => {
     const free = await web.json();
     assert.equal(web.status, 200, JSON.stringify(free));
     assert.equal(free.clearance, null);
-    assert.equal(free.riskLevel, "SAFE");
+    assert.equal(free.riskLevel, "SAFE", JSON.stringify(free));
+    if (realModel) {
+      assert.equal(free.verifier, "model");
+      const mismatch = await (
+        await fetch(
+          url + "/api/v1/web/verify-tx",
+          options({ ...clean, userIntent: "Chuyển 7 mUSDC đến MockPartner" }),
+        )
+      ).json();
+      assert.equal(mismatch.intentMatch, false, JSON.stringify(mismatch));
+      assert.notEqual(mismatch.riskLevel, "SAFE");
+      console.log(
+        "Local model passed amount mismatch and clean intent checks:",
+        process.env.LLM_MODEL,
+      );
+    }
     process.env.X402_PAYER_PRIVATE_KEY = keys.agent;
     process.env.X402_PAY_TO = fuji.owner;
     process.env.AEGIS_API_URL = url;
@@ -272,7 +299,7 @@ await withFork(async (sandbox) => {
     console.log(
       JSON.stringify({
         environment: "local Anvil fork",
-        model: "HTTP fixture",
+        model: realModel ? process.env.LLM_MODEL : "HTTP fixture",
         paymentReceipt: settlement.transaction,
         executionReceipt: tx,
         remainingVault: String(remaining),

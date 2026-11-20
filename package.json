@@ -14,6 +14,8 @@
     "dev:mcp": "npm run start -w mcp-server",
     "typecheck": "tsc --noEmit",
     "test:fork": "node backend/test/fork-smoke.ts",
+    "test:fork:llm": "node --env-file=.env backend/test/fork-smoke.ts --local-model",
+    "model:local": "node --env-file=.env backend/scripts/local-model.ts",
     "test": "node --test backend/test/*.test.ts"
   },
   "devDependencies": {

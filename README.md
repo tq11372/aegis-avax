@@ -58,7 +58,14 @@ Chạy `npm run dev:mcp` để mở server MCP qua stdio. MCP client cũng có t
 
 Chạy `npm run test:fork` sau khi đã `npm ci` và `forge build` trong `contracts/`. Phép thử dùng RPC Fuji để đọc dữ liệu và explorer để tra mã nguồn. Nó tạo ví tạm, thanh toán 0,005 mUSDC và thực thi clearance trên Anvil cục bộ, rồi kiểm tra lệnh đáng ngờ và lệnh thiếu chữ ký. Dịch vụ model trong phép thử là fixture HTTP. Hash của phép thử thuộc chain cục bộ.
 
+#### Chạy với mô hình thật trên máy
+
+Máy của dự án dùng llama.cpp CPU build `b12572` và Qwen2.5-1.5B-Instruct Q4_K_M. Tệp GGUF có SHA-256 `6a1a2eb6d15622bf3c96857206351ba97e1af16c30d7a74ee38970e434e9407e`. Trên máy khác, tải runtime phù hợp và tệp GGUF cùng phiên bản. [llama.cpp b12572](https://github.com/ggml-org/llama.cpp/releases/tag/b12572) · [Qwen GGUF chính thức](https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF)
+
+Trong `.env`, đặt `LLAMA_SERVER_BIN` và `LLM_GGUF_PATH` thành đường dẫn cục bộ, `LLM_BASE_URL=http://127.0.0.1:8091/v1` và `LLM_MODEL=qwen2.5-1.5b-instruct`. Chạy `npm run model:local` trong một terminal, rồi `npm run test:fork:llm` ở terminal khác. Phép thử dùng model thực; x402 và thực thi lệnh chỉ ghi lên Anvil. Yêu cầu có số tiền hoặc địa chỉ rõ ràng được đối chiếu độc lập với kết quả model.
+
 ### Hợp đồng Foundry
+
 
 Cần Node.js/npm và Foundry (`forge`, `cast`). Tại thư mục gốc của repo, chạy:
 

@@ -100,6 +100,16 @@ test("risk rules veto an otherwise clean intent; missing model fails closed", as
     if (original !== undefined) process.env.LLM_MODEL = original;
   }
 });
+test("explicit intent mismatch cannot be labelled SAFE", async () => {
+  const mismatch = { ...input, userIntent: "Chuyển 7 mUSDC đến MockPartner" };
+  const resolved = await verifyIntent(
+    mismatch,
+    snapshot,
+    review(mismatch, snapshot, []),
+  );
+  assert.equal(resolved.verifier, "intent");
+  assert.equal(resolved.intentMatch, false);
+});
 test("API rejects invalid input and advertises the precise x402 price", async () => {
   const app = createApp();
   const free = await app.request("/api/v1/web/verify-tx", {
