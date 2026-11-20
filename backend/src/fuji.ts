@@ -19,7 +19,7 @@ export const fuji = {
   ),
   partner: getAddress("0x1C552a98A274FFc69230816b2Bf892543E1c9ee8"),
   flagged: getAddress("0xaD1873680DcE93CF40C1F2c72f7002b5E50134c9"),
-  policy: getAddress("0x3b271117E6AC5e243686Bc61771CbC5C7F8Db436"),
+  policy: getAddress(process.env.POLICY_MODULE_ADDRESS || "0x3b271117E6AC5e243686Bc61771CbC5C7F8Db436"),
   registry: getAddress("0x262289744140ccC1923F49cf9D01D3573bd2fCe2"),
   owner: getAddress("0xA233579CAee3BCF9dE050e66b75FfF06A6EB6270"),
 };

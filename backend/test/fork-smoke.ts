@@ -3,22 +3,22 @@ import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { createServer } from "node:http";
 import type { AddressInfo } from "node:net";
-import { readFile } from "node:fs/promises";
+import { seed } from "../scripts/sandbox.ts";
 import { once } from "node:events";
 import {
-  getAddress,
-  createWalletClient,
-  createTestClient,
+
+
+
   encodeFunctionData,
   erc20Abi,
-  http,
+
   maxUint256,
-  parseAbi,
-  type Address,
+
+
   type Hex,
 } from "viem";
-import { avalancheFuji } from "viem/chains";
-import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
+
+
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { fileURLToPath } from "node:url";
@@ -38,75 +38,7 @@ const balanceAtBlock = () =>
   });
 const before = await balanceAtBlock();
 await withFork(async (sandbox) => {
-  const local = sandbox.transport.url;
-  assert.ok(local && new URL(local).hostname === "127.0.0.1");
-  const dev = createTestClient({
-    chain: avalancheFuji,
-    mode: "anvil",
-    transport: http(local),
-  });
-  await dev.setAutomine(true);
-  const keys = {
-    relayer: generatePrivateKey(),
-    signer: generatePrivateKey(),
-    agent: generatePrivateKey(),
-  };
-  const account = privateKeyToAccount(keys.relayer),
-    agent = privateKeyToAccount(keys.agent);
-  const wallet = createWalletClient({
-    account,
-    chain: avalancheFuji,
-    transport: http(local),
-  });
-  const receipt = (hash: Hex) =>
-    sandbox.waitForTransactionReceipt({ hash, pollingInterval: 100 });
-  await dev.setBalance({ address: account.address, value: 10n ** 18n });
-  await dev.setBalance({ address: agent.address, value: 10n ** 18n });
-  const artifact = JSON.parse(
-    await readFile(
-      new URL(
-        "../../contracts/out/GuardVault.sol/GuardVault.json",
-        import.meta.url,
-      ),
-      "utf8",
-    ),
-  );
-  const deployed = await receipt(
-    await wallet.deployContract({
-      abi: artifact.abi,
-      bytecode: artifact.bytecode.object,
-      args: [
-        account.address,
-        fuji.policy,
-        privateKeyToAccount(keys.signer).address,
-      ],
-    }),
-  );
-  assert.equal(deployed.status, "success");
-  const vault = getAddress(deployed.contractAddress!);
-  async function write(
-    address: Address,
-    abi: typeof erc20Abi | ReturnType<typeof parseAbi>,
-    functionName: string,
-    args: readonly unknown[],
-    sender = account,
-  ) {
-    const hash = await wallet.writeContract({
-      address,
-      abi: abi as import("viem").Abi,
-      functionName,
-      args,
-      account: sender,
-    });
-    assert.equal((await receipt(hash)).status, "success");
-    return hash;
-  }
-  await write(vault, parseAbi(["function grantAgent(address)"]), "grantAgent", [
-    agent.address,
-  ]);
-  await write(fuji.token, parseAbi(["function faucet()"]), "faucet", [], agent);
-  await write(fuji.token, erc20Abi, "transfer", [vault, 50_000_000n], agent);
-
+  const {local,keys,agent,vault,policy,write,receipt}=await seed(sandbox);
   // Deterministic HTTP fixture tests the model integration without external credentials.
   const model = createServer((req, res) => {
     req.resume();
@@ -147,6 +79,7 @@ await withFork(async (sandbox) => {
       ...process.env,
       FUJI_RPC_URL: local,
       GUARD_VAULT_ADDRESS: vault,
+      POLICY_MODULE_ADDRESS: policy,
       RELAYER_PRIVATE_KEY: keys.relayer,
       X402_FACILITATOR_URL: "",
       AEGIS_SIGNER_PRIVATE_KEY: keys.signer,

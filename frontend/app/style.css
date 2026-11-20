@@ -1,0 +1,414 @@
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+:root {
+  color-scheme: light;
+  font-family: Inter, "Segoe UI", sans-serif;
+  color: #17263a;
+  background: #f2f5f8;
+  --muted: #53647b;
+  --border: #d8e1e9;
+  --blue: #1657bc;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+header {
+  background: #10253f;
+  color: white;
+  padding: 14px max(5%, calc((100vw - 1180px) / 2));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.brand,
+.network,
+.chain,
+.panelhead,
+.vault-head,
+.vaultfoot,
+.split,
+.entry,
+nav,
+footer,
+button,
+a,
+.meta h2,
+.meta p {
+  display: flex;
+  align-items: center;
+}
+.brand {
+  font-size: 25px;
+  font-weight: 750;
+  letter-spacing: -1px;
+}
+.brand > span:last-child {
+  color: #97bddb;
+}
+.brandmark {
+  background: #215785;
+  color: #d9f3ff;
+  padding: 7px;
+  border-radius: 10px;
+  display: grid;
+  margin-right: 10px;
+}
+.network {
+  gap: 8px;
+  font-size: 13px;
+}
+.network i {
+  width: 9px;
+  height: 9px;
+  border-radius: 100%;
+  background: #d59a55;
+}
+.network .online {
+  background: #61d5a6;
+}
+main {
+  width: min(90%, 1180px);
+  margin: 38px auto 24px;
+}
+.intro,
+.split,
+.vaultfoot,
+footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+}
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+h1 {
+  font-size: clamp(32px, 4vw, 50px);
+  letter-spacing: -0.045em;
+  line-height: 1.15;
+}
+.intro p {
+  margin: 9px 0;
+  color: var(--muted);
+}
+.chain,
+.network,
+.vault-head,
+.entry {
+  gap: 10px;
+}
+.chain {
+  font-size: 13px;
+}
+.chain b,
+.vault-head span {
+  font-size: 11px;
+  border: 1px solid var(--border);
+  padding: 4px 7px;
+  border-radius: 5px;
+}
+nav {
+  border-bottom: 1px solid var(--border);
+  margin: 25px 0;
+  gap: 7px;
+}
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+button {
+  gap: 8px;
+  border: 1px solid var(--border);
+  background: white;
+  color: #243e59;
+  border-radius: 8px;
+  padding: 9px 13px;
+  font-weight: 600;
+  cursor: pointer;
+  justify-content: center;
+}
+button:hover {
+  border-color: #6a90b8;
+}
+button:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 3px solid #719de3;
+  outline-offset: 2px;
+}
+nav button {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 12px 15px;
+  border-bottom: 3px solid transparent;
+}
+nav svg,
+.meta svg,
+.scenario svg {
+  width: 19px;
+}
+nav button[aria-pressed="true"] {
+  color: var(--blue);
+  border-color: var(--blue);
+}
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(280px, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+.panel,
+.vault {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: white;
+  padding: 24px;
+}
+.panelhead,
+.meta h2,
+.meta p {
+  gap: 10px;
+}
+.tile {
+  display: grid;
+  background: #e6f0ff;
+  color: var(--blue);
+  border-radius: 8px;
+  padding: 8px;
+}
+h2 {
+  font-size: 20px;
+}
+h3 {
+  font-size: 16px;
+  margin: 22px 0 0;
+}
+.fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.fields.amount {
+  grid-template-columns: 1fr 2fr;
+}
+label {
+  display: grid;
+  gap: 7px;
+  font-weight: 600;
+  font-size: 13px;
+  margin: 17px 0 0;
+}
+input,
+textarea,
+select {
+  border: 1px solid #bdcbd9;
+  border-radius: 7px;
+  background: #fbfcfe;
+  color: #17263a;
+  padding: 10px;
+  min-width: 0;
+  width: 100%;
+}
+textarea {
+  resize: vertical;
+  overflow-wrap: anywhere;
+  font-family: Consolas, monospace;
+  font-size: 13px;
+}
+.primary,
+.danger {
+  width: 100%;
+  margin-top: 18px;
+  padding: 12px;
+  color: white;
+  background: var(--blue);
+  border: 0;
+}
+.danger {
+  background: #a72e3d;
+}
+.rail,
+.scenario {
+  display: grid;
+  gap: 14px;
+}
+.scenario {
+  margin: 18px 0;
+}
+.scenario button {
+  justify-content: flex-start;
+}
+.fields + button,
+.split {
+  margin-top: 14px;
+}
+.vault {
+  background: linear-gradient(130deg, #11253e, #1c4061);
+  color: white;
+}
+.vault-head span {
+  margin-left: auto;
+  border-color: #64829a;
+}
+.vault small {
+  display: block;
+  margin-top: 24px;
+  color: #bad0df;
+}
+.balance {
+  font-size: 45px;
+  font-weight: 650;
+  letter-spacing: -0.05em;
+}
+.balance em {
+  font-style: normal;
+  font-size: 16px;
+  color: #c0dcf1;
+  letter-spacing: 0;
+}
+.vaultfoot {
+  margin-top: 14px;
+  border-top: 1px solid #42637f;
+  padding-top: 12px;
+}
+.vaultfoot button {
+  background: transparent;
+  color: white;
+  border-color: #55758f;
+  padding: 6px;
+}
+.meta dl {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 12px;
+  font-size: 14px;
+}
+.meta dt,
+small {
+  color: var(--muted);
+}
+.meta dd {
+  text-align: right;
+  margin: 0;
+  font-weight: 600;
+}
+.meta p,
+footer {
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+  font-size: 13px;
+  color: var(--muted);
+}
+small {
+  display: block;
+}
+.result,
+footer {
+  margin-top: 20px;
+}
+.result .split {
+  margin: 0;
+}
+.result p,
+.result small {
+  margin: 12px 0;
+}
+.risk {
+  padding: 6px 9px;
+  border-radius: 5px;
+  background: #fff1c7;
+}
+.SAFE {
+  background: #d7f5e5;
+  color: #09633d;
+}
+.CRITICAL,
+aside {
+  color: #912536;
+  background: #ffebef;
+}
+.tablebox {
+  overflow: auto;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 14px;
+}
+td,
+th {
+  text-align: left;
+  padding: 9px;
+  border-bottom: 1px solid var(--border);
+}
+.entry {
+  padding: 12px 0;
+  align-items: flex-start;
+}
+.entry a,
+a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--blue);
+}
+aside {
+  padding: 14px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+aside button {
+  display: inline-block;
+}
+footer {
+  flex-wrap: wrap;
+}
+@media (max-width: 760px) {
+  main {
+    width: 93%;
+    margin-top: 24px;
+  }
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  .intro {
+    align-items: flex-start;
+  }
+  .chain {
+    display: none;
+  }
+  .fields,
+  .fields.amount {
+    grid-template-columns: 1fr;
+  }
+  .panel,
+  .vault {
+    padding: 18px;
+  }
+  .network {
+    font-size: 11px;
+  }
+  nav button {
+    font-size: 14px;
+    padding: 10px;
+  }
+  .brand {
+    font-size: 21px;
+  }
+}

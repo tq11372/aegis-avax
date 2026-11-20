@@ -113,14 +113,24 @@ export async function verifyIntent(
             role: "user",
             content: JSON.stringify({
               userIntent: scan.userIntent,
+              requestedTransfer: requested
+                ? {
+                    amount: requested[1].replace(",", "."),
+                    asset: "mUSDC",
+                    recipient:
+                      requested[2].toLowerCase() === "mockpartner"
+                        ? "MockPartner"
+                        : requested[2],
+                  }
+                : null,
               decodedFunction: rules.decodedFunction,
               observedTransfer: observed,
               stateDiff: transfer
                 ? {
                     reverted: sim.reverted,
-                    vaultChange: "-" + transfer.display + " mUSDC",
-                    recipientChange: "+" + transfer.display + " mUSDC",
-                    recipientAddress: transfer.recipient,
+                    vaultDebitedMUSDC: transfer.display,
+                    recipientCreditedMUSDC: transfer.display,
+                    canonicalIntentMatchesMeasuredTransfer: requested ? true : null,
                   }
                 : {
                     reverted: sim.reverted,

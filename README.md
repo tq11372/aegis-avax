@@ -5,6 +5,28 @@ Bảy hợp đồng đã triển khai và xác minh trên **Avalanche Fuji C-Cha
 
 ## What it does
 
+**Demo cục bộ.** Mở [AegisAVAX trên máy](http://127.0.0.1:3000). Tab Tx Firewall mô phỏng calldata miễn phí và hiển thị số dư trước/sau. Tab AI Agent Sandbox dùng ví thử trên Anvil, có thanh toán x402, hạn mức, danh sách người nhận và thu hồi session key. Biên nhận của phiên demo mở trên máy. Địa chỉ triển khai công khai ở bảng Fuji bên dưới.
+
+### Chạy giao diện và bộ đánh giá
+
+Từ gốc repo, chạy `npm ci`. Cài Foundry và build hợp đồng theo hướng dẫn bên dưới. Cấu hình model theo mục “Chạy với mô hình thật trên máy”. Trong ba terminal ở gốc repo, chạy từng lệnh sau theo thứ tự.
+
+1. `npm run model:local` khởi động Qwen ở cổng 8091.
+2. `npm run dev:demo` tạo fork từ block Fuji hiện hành, nạp 50 mUSDC vào két thử và mở dịch vụ ở cổng 4021/4022. Khởi động lại sẽ tạo một phiên mới.
+3. `npm run dev:web` mở giao diện ở cổng 3000. Để dùng bản production, chạy `npm run build -w frontend` và `npm run start -w frontend`.
+
+Khi két đang rảnh, chạy `npm run eval` từ terminal khác. Ở block nguồn **61382536**, ngày 20/11/2026, kết quả trên Anvil với Qwen2.5-1.5B-Instruct Q4_K_M như sau.
+
+| Nhóm ca | Kết quả quan sát |
+| --- | --- |
+| 10 lệnh chuyển hợp lệ | Duyệt 10/10 |
+| 10 lệnh có dấu hiệu rủi ro | Chặn 10/10, khớp cả 5 luật được kiểm tra |
+| 10 đề xuất giao dịch từ hóa đơn có số tiền hoặc người nhận lệch ý định | Chặn 10/10 |
+| Precision / Recall / Block rate trên 20 ca cần chặn | 100% / 100% / 100%, 0 lỗi dịch vụ |
+| Số dư két trước và sau 30 lần gọi API mô phỏng | 50 → 50 mUSDC |
+
+Nhóm hóa đơn kiểm tra giao dịch được đề xuất sau bước đọc hóa đơn. Trích xuất chỉ thị từ tài liệu bằng một agent bên ngoài nằm ngoài phép đo. Hai lần đo trước có lần lượt 2 và 1 cảnh báo nhầm. Sau khi chuẩn hóa số tiền trong dữ liệu gửi Qwen và thêm kết quả đối chiếu số dư, lần đo trên đạt 30/30. Để thử thực thi qua giao diện HTTP và đọc cả hai biên nhận Anvil, chạy `node backend/test/demo-controls.ts` trên phiên mới. Để thử qua giao thức MCP từ đầu tới cuối dùng `npm run test:fork:llm`.
+
 Bước 1 triển khai két `GuardVault` và bộ quy tắc `PolicyModule`. Chủ két nạp token bằng ERC-20 transfer, cấp session key và chọn người nhận. Agent chỉ được chuyển token thanh toán đã duyệt. Két đọc địa chỉ người nhận và số tiền trực tiếp từ calldata, kiểm tra hạn mức rồi xác thực chữ ký EIP-712 trước khi chuyển. Hạn mức ngày tính trên 24 giờ gần nhất và tiếp tục áp dụng khi đổi session key.
 
 | Thành phần | Vai trò trong bản thử nghiệm |
