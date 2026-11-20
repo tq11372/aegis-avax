@@ -1,0 +1,23 @@
+{
+  "name": "aegis-avax",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "backend",
+    "mcp-server"
+  ],
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "scripts": {
+    "dev:backend": "npm run start -w backend",
+    "dev:mcp": "npm run start -w mcp-server",
+    "typecheck": "tsc --noEmit",
+    "test:fork": "node backend/test/fork-smoke.ts",
+    "test": "node --test backend/test/*.test.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^24",
+    "typescript": "^5.9.3"
+  }
+}

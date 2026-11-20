@@ -15,7 +15,7 @@ Cập nhật ngày 20/11/2026, giờ Việt Nam. Dự án Team1 Vietnam UniHack 
 | --- | --- | --- |
 | Bước 1 · Hợp đồng và Foundry | Hoàn thành | Commit `6d0856d`. 27/27 test đạt, gồm 256 lần fuzz cho một bài. |
 | Bước 1 · Triển khai Fuji | Hoàn thành | Commit `581595c`. Chain 43113, bảy hợp đồng đã xác minh, 13/13 biên nhận thành công. Tại block 61380210, két có 100 mUSDC, hạn mức 10/lệnh và 25/24 giờ. |
-| Bước 2 · Backend và MCP | Đang triển khai | Bắt đầu với mô phỏng chỉ đọc trên Anvil fork và kiểm thử state diff trước khi nối dịch vụ ký hoặc thanh toán. |
+| Bước 2 · Backend và MCP | Đã kiểm thử trên fork | `backend/` và `mcp-server/` đã có API web, x402, MCP và ký EIP-712. TypeScript đạt, 5/5 test đạt, smoke test qua client MCP đạt. Mô hình thật và demo trả phí trên Fuji công khai còn chờ cấu hình. |
 | Bước 3 · Demo và đánh giá | Chờ Bước 2 | `frontend/` gồm Tx Firewall và AI Agent Sandbox. `evals/` dành cho 25–30 kịch bản và số liệu đo được. |
 | Vòng 2 | Chờ Vòng 1 | Avalanche L1 cho audit log và `extension/` MV3 theo điều kiện thời gian trong đề bài. |
 
@@ -30,6 +30,13 @@ Cập nhật ngày 20/11/2026, giờ Việt Nam. Dự án Team1 Vietnam UniHack 
 
 Sau mỗi mốc hoặc trước khi dừng, cập nhật bảng trên cùng mục tiếp tục bên dưới. Ghi lệnh đã chạy, kết quả, lỗi còn mở và việc cần làm ngay sau đó. Đẩy bản bàn giao cùng mã đã kiểm thử lên GitHub. Khi mất phiên giữa chừng, đối chiếu bảng với working tree trước khi làm tiếp.
 
+Khi một trong hai cửa sổ hạn mức Codex còn 8% hoặc thấp hơn, lưu mốc, hướng dẫn người dùng chuyển giao và dừng. Trong Codex có thể đọc hạn mức bằng công cụ `get_usage_limits`. Tỷ lệ còn lại bằng 100 trừ `usedPercent`. Tránh lưu mã tài khoản hay thông tin xác thực vào Git.
+
+Trong chat mới, mở thư mục repo rồi gửi: “Đọc HANDOFF.md và README.md ở gốc repo, đối chiếu git status với mốc mới nhất, sau đó tiếp tục từ mục Tiếp tục từ đây. Cập nhật HANDOFF.md sau mỗi mốc. Kiểm tra hạn mức và dừng khi một trong hai cửa sổ còn 8%.”
+
 ## Tiếp tục từ đây
 
-Bắt đầu Bước 2 trong `backend/`. Cần kiểm tra giao dịch sạch 3 mUSDC từ két đến MockPartner trên bản fork, chứng minh số dư trước/sau và xác nhận RPC Fuji không thay đổi. Tiếp theo là năm luật rủi ro, đối chiếu ý định, xác minh thanh toán, ký clearance và tool MCP. Tách rõ phép thử local/fork với biên nhận từ Fuji công khai.
+1. Ở gốc repo chạy `npm ci`, `npm run typecheck`, `npm test`. Chạy `forge build` trong `contracts/` trước khi chạy `npm run test:fork` từ gốc repo. Trên máy dự án, có thể đặt `ANVIL_BIN` thành đường dẫn tuyệt đối tới `../.aegis-tools/node_modules/@foundry-rs/anvil-win32-amd64/bin/anvil.exe`. Lệnh smoke dùng ví tạm và một model HTTP fixture.
+2. Đã quan sát tại block Fuji `61380649`: thử chuyển 3 mUSDC trên fork làm số dư két 100 → 97 và MockPartner 0 → 3. Trong smoke test tích hợp, MCP đã trả qua x402: người nhận phí tăng đúng 5.000 đơn vị, két thử chuyển đúng 3 mUSDC, chữ ký thiếu bị từ chối với `InvalidSecurityClearance`. Đây là giao dịch trên Anvil; dùng giao dịch ở README cho bằng chứng triển khai công khai.
+3. Bước kế tiếp là cấu hình endpoint và tên model thật, kiểm tra cả ý định khớp/lệch. Đọc mẫu `.env.example` và mục Backend trong README. Khi demo trên Fuji, dùng signer tương ứng với `GuardVault.signer()`, payer có mUSDC và relayer có AVAX testnet. Ghi hash thanh toán và thực thi sau khi RPC xác nhận.
+4. Sau khi khép lại Bước 2, chuyển sang giao diện ở `frontend/` và bộ đánh giá ở `evals/`. Các biến môi trường có khóa chỉ lưu cục bộ.

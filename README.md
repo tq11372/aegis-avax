@@ -18,9 +18,47 @@ Bước 1 triển khai két `GuardVault` và bộ quy tắc `PolicyModule`. Ch�
 
 **Vì sao chọn Avalanche?** Fuji C-Chain cho phép thử cùng một luồng ký, thực thi EVM và kiểm tra biên nhận trên explorer bằng AVAX testnet. Độ trễ thu hồi quyền trên Fuji cần được đo trong bản demo.
 
-**Mô hình sử dụng.** Thiết kế dành cho cá nhân kiểm tra miễn phí và dịch vụ x402 thu 0,005 USDC/lần kiểm tra của agent. Bước 1 kiểm thử lớp ủy quyền thanh toán với 5.000 đơn vị mUSDC. API thu phí, trình mô phỏng và giao diện thuộc các bước sau. Phạm vi demo là testnet, dùng token thử nghiệm.
+**Mô hình sử dụng.** Route web miễn phí. Route agent dùng x402 v2 với giá 5.000 đơn vị mUSDC (0,005 mUSDC) cho mỗi lần kiểm tra. Backend chạy mô phỏng trên một Anvil fork riêng cho mỗi yêu cầu. Phạm vi demo là testnet, dùng token thử nghiệm. [Trạng thái và tài liệu bàn giao](HANDOFF.md)
 
 ## How to run
+
+### Backend và MCP
+
+Từ thư mục gốc, dùng Node.js 22.18 trở lên và Anvil trên PATH (hoặc đặt đường dẫn trong `ANVIL_BIN`). Trên PowerShell:
+
+```powershell
+npm ci
+npm run typecheck
+npm test
+if (!(Test-Path .env)) { Copy-Item .env.example .env }
+npm run dev:backend
+```
+
+Backend phục vụ tại `http://127.0.0.1:4021`. Cổng web nhận `POST /api/v1/web/verify-tx` với `from`, `to`, `data`, `value` (chuỗi số nguyên đơn vị wei) và `userIntent`. Có thể bổ sung `knownRecipients` để so sánh lịch sử và `minOutput: {token, amount}` để kiểm tra lượng token đầu ra tối thiểu. Phản hồi có block/hash nguồn, số dư AVAX và token trước/sau, event, trạng thái revert, mã luật kích hoạt và giải thích tiếng Việt.
+
+Ví dụ PowerShell sau mô phỏng trên trạng thái Fuji hiện tại:
+
+```powershell
+$to = '0x1C552a98A274FFc69230816b2Bf892543E1c9ee8'
+$body = @{
+  from = '0x4d0DA228a21F02c83ee3aF70E6702a489cD1019F'
+  to = '0x7620FaBA82e05bBb889f80F3E20429A81f2e7113'
+  data = (cast calldata 'transfer(address,uint256)' $to 3000000).Trim()
+  value = '0'
+  userIntent = 'Chuyển 3 mUSDC đến MockPartner'
+} | ConvertTo-Json
+Invoke-RestMethod http://127.0.0.1:4021/api/v1/web/verify-tx -Method Post -ContentType 'application/json; charset=utf-8' -Body $body
+```
+
+Backend đọc `LLM_BASE_URL`, `LLM_MODEL` và `LLM_API_KEY` cho API tương thích Chat Completions, có hỗ trợ JSON. Nếu thiếu model hoặc phản hồi sai định dạng, web trả `MEDIUM`, `verifier: unavailable`, `clearance: null`. Luật rủi ro có thể trả `CRITICAL` mà không cần gửi dữ liệu tới model. Các block mô phỏng và sự kiện trả về chỉ tồn tại trên fork.
+
+Agent gọi `POST /api/v1/agent/verify-tx`. Backend trả `402` cùng `PAYMENT-REQUIRED` ghi Fuji `eip155:43113`, token mUSDC và giá `5000`. Khách ký EIP-3009 rồi gửi lại trong `PAYMENT-SIGNATURE`. Khi thành công, `PAYMENT-RESPONSE` chứa hash giao dịch thanh toán. Cấu hình `X402_FACILITATOR_URL` cho facilitator hỗ trợ token của dự án, hoặc `RELAYER_PRIVATE_KEY` của ví chuyên trả gas để dùng facilitator trong tiến trình. Backend đối chiếu ý định, kiểm tra policy, chữ ký và mô phỏng `GuardVault.execute` trước khi trả clearance. Với lệnh có thể ký, dùng mẫu `Chuyển <số> mUSDC đến <địa chỉ hoặc MockPartner>`. Route web luôn trả `clearance: null`. [Starter x402 của BTC](https://team1vn.xyz/demos.html#x402-pay-per-request)
+
+Chạy `npm run dev:mcp` để mở server MCP qua stdio. MCP client cũng có thể khởi chạy `node mcp-server/src/server.ts` từ repo, truyền `AEGIS_API_URL`, `X402_PAY_TO` và `X402_PAYER_PRIVATE_KEY` trong môi trường của tiến trình. Tool `simulate_and_verify_tx` chỉ chấp nhận đúng chain, token, người nhận phí và số tiền ở trên. Ví thanh toán cần mUSDC. Backend dùng khóa signer tương ứng `GuardVault.signer()` để ký clearance.
+
+Chạy `npm run test:fork` sau khi đã `npm ci` và `forge build` trong `contracts/`. Phép thử dùng RPC Fuji để đọc dữ liệu và explorer để tra mã nguồn. Nó tạo ví tạm, thanh toán 0,005 mUSDC và thực thi clearance trên Anvil cục bộ, rồi kiểm tra lệnh đáng ngờ và lệnh thiếu chữ ký. Dịch vụ model trong phép thử là fixture HTTP. Hash của phép thử thuộc chain cục bộ.
+
+### Hợp đồng Foundry
 
 Cần Node.js/npm và Foundry (`forge`, `cast`). Tại thư mục gốc của repo, chạy:
 
