@@ -8,6 +8,8 @@ Tài liệu chuẩn bị cho **Vòng loại trực tuyến (50đ kỹ thuật)**
 
 > **Link Google Slides công khai (22 trang):** [https://docs.google.com/presentation/d/1GbwWTIyI_WBsYoN1tf5dfELDGwLOYKd3yoCp3-T3uqU/edit?usp=sharing](https://docs.google.com/presentation/d/1GbwWTIyI_WBsYoN1tf5dfELDGwLOYKd3yoCp3-T3uqU/edit?usp=sharing)
 >
+> **Link Video Demo công khai (`02:47`, Full HD 1080p, giọng nam tiếng Việt + phụ đề):** [https://drive.google.com/file/d/1lid3WKFfUcEIXGKZ0pjMfyysYwzzIgvp/view?usp=sharing](https://drive.google.com/file/d/1lid3WKFfUcEIXGKZ0pjMfyysYwzzIgvp/view?usp=sharing)
+>
 > Bộ slide chuẩn hóa theo hệ thống bố cục mã nguồn mở **[Slidev](https://github.com/slidevjs/slidev)** (`cover`, `two-cols`, `fact`, `image-right`, `statement` 3 hàng đối chiếu, `four-step` pipeline) kết hợp ảnh chụp giao diện sản phẩm thiết kế theo **[`shadcn-ui/ui`](https://github.com/shadcn-ui/ui)** và **Vercel Geist Design System**. Toàn bộ 22 trang đồng nhất hệ lưới `16:9` (`13.333 × 7.5 in`), tiêu đề phụ hai thành phần (`NHÓM CHỦ ĐỀ  /  TIÊU ĐỀ PHỤ`), bảng màu tương phản cao (`#241B39`, `#FAF8F3`, `#EDE7FA`, `#613CAA`, `#ADF2D1`) và bộ đếm trang `01 / 22` .. `22 / 22`.
 
 ### Slide 01 / 22 — Trang bìa (`TEAM1 VIETNAM UNIHACK 2026`)
@@ -137,28 +139,27 @@ Tài liệu chuẩn bị cho **Vòng loại trực tuyến (50đ kỹ thuật)**
 
 ---
 
-## 2. Kịch bản quay Video Demo (2 phút 45 giây — tối đa 3 phút)
+## 2. Kịch bản Video Demo đã quay (`02:47` — Full HD 1080p, ~90% thao tác ứng dụng thật)
 
-### Chuẩn bị trước khi bấm quay (Checklist bắt buộc)
-1. Khởi động mới 3 terminal từ thư mục `aegis-avax/` để số dư két sạch ở **`50 mUSDC`**:
-   - Terminal 1: `npm run model:local` (Qwen ở cổng `8091`)
-   - Terminal 2: `npm run dev:demo` (Anvil fork từ Fuji + backend `4021` + controller `4022`)
-   - Terminal 3: `npm run dev:web` (hoặc production `npm run start -w frontend`, cổng `3000`)
-2. Mở sẵn 3 tab Chrome (không quay bằng camera điện thoại, không để phụ đề che ô input/kết quả):
-   - **Tab 1:** `http://127.0.0.1:3000` (AegisAVAX Demo — cài sẵn Extension MV3 nếu muốn hiện khiên góc trang).
-   - **Tab 2:** `GuardVault` đã xác minh trên [Avalanche Fuji Snowtrace](https://testnet.snowtrace.io/address/0x4d0DA228a21F02c83ee3aF70E6702a489cD1019F).
-   - **Tab 3:** Mở README tại [Live proof on Fuji](../README.md#live-proof-on-fuji).
+> **Video công khai (không cần đăng nhập):** [AegisAVAX_Demo_Video.mp4 (Google Drive)](https://drive.google.com/file/d/1lid3WKFfUcEIXGKZ0pjMfyysYwzzIgvp/view?usp=sharing)
+>
+> Quay trực tiếp phiên ứng dụng chạy thật trên `http://127.0.0.1:3000` (Anvil fork từ trạng thái thật của Fuji, số dư đầu `50 mUSDC`) và kiểm thử lần lượt **đủ 10 chức năng & tình huống biên** trên cả 2 tab, kèm lồng tiếng AI giọng nam tiếng Việt và phụ đề đốt trực tiếp.
 
-### Diễn biến từng giây
+### Diễn biến các kịch bản trong Video (`00:00 – 02:47`)
 
-| Mốc thời gian | Thao tác trên màn hình | Lời thuyết minh (ngắn gọn, rõ ràng) |
+| Mốc thời gian | Chức năng / Kịch bản kiểm thử trên màn hình | Kết quả kiểm chứng trực tiếp |
 | --- | --- | --- |
-| **0:00 – 0:25** | Đứng tại Tab `Tx Firewall` của AegisAVAX. | *"Khi bạn ký một giao dịch Web3 hay trao ví cho AI Agent tự động, làm sao chắc chắn chuỗi calldata hex đó trả đúng người, đúng số tiền? Chỉ nhắc AI bằng prompt có thể bị Prompt Injection. AegisAVAX giải quyết bằng hai lớp: mô phỏng trạng thái thật trước khi ký và khóa cứng hạn mức bằng Smart Contract trên Avalanche."* |
-| **0:25 – 0:55** | Chuyển sang Tab `AI Agent Sandbox`. Chỉ vào số dư đầu `50 mUSDC`, hạn mức `10/lệnh`, `25/24h`. Bấm nút **`Chuyển 3 mUSDC đến MockPartner`**. Khi xong, mở 2 liên kết `Biên nhận Anvil` và `Thanh toán x402` trong `Lịch sử phiên`. | *"Ở luồng hợp lệ, AI Agent muốn chuyển 3 mUSDC cho MockPartner. Agent tự thanh toán vi mô 0.005 mUSDC qua giao thức x402 bằng EIP-3009. Aegis chạy giả lập trên Anvil fork từ Fuji, đối chiếu ý định bằng Qwen cục bộ rồi cấp chữ ký EIP-712. GuardVault xác thực chữ ký và chuyển đúng 3 mUSDC — phí quét của agent và quỹ trong két tách biệt hoàn toàn."* |
-| **0:55 – 1:25** | Chuyển qua Tab `Tx Firewall`. Chọn kịch bản mẫu **`Phê duyệt vô hạn`** rồi bấm **`Mô phỏng giao dịch`**. Chỉ vào cờ đỏ `UNLIMITED_APPROVAL`, bảng `Trước / Sau`, bảng **`Sự kiện giải mã (Decoded Events)`** hiện **`Approval · Không giới hạn (MAX_UINT256)`** và giải thích tiếng Việt (cùng khiên Extension nếu bật). | *"Với người dùng cá nhân, tab Tx Firewall miễn phí giúp bóc trần giao dịch lừa đảo trước khi ký. Khi mô phỏng lệnh approve vô hạn, số dư hiện tại chưa đổi nhưng bộ 5 luật tất định lập tức gắn cờ CRITICAL UNLIMITED_APPROVAL và bảng Sự kiện giải mã hiện rõ quyền Approval Không giới hạn (MAX_UINT256) gửi tới hợp đồng Drainer."* |
-| **1:25 – 2:05** | Về Tab `AI Agent Sandbox`. Bấm **`Kiểm tra hóa đơn sai số tiền`** → chỉ lý do từ chối cấp EIP-712. Sau đó bấm **`Mô phỏng lệnh thiếu chữ ký`** → chỉ rõ thông báo **`REVERT cứng: InvalidSecurityClearance()`**. Bấm nút đỏ **`Kill switch · Thu hồi session key`** → chỉ trạng thái `Agent đã khóa`. | *"Khi AI gặp hóa đơn độc hại bị Prompt Injection đổi người nhận hoặc số tiền, Lớp 1 phát hiện lệch ý định và từ chối ký clearance. Ngay cả khi agent cố tình bỏ qua Lớp 1 và gọi thẳng hợp đồng, GuardVault vẫn REVERT cứng với mã lỗi InvalidSecurityClearance(). Chủ ví chỉ cần bấm Kill Switch để thu hồi quyền agent khi giao dịch được xác nhận."* |
-| **2:05 – 2:35** | Mở bảng [Live proof on Fuji](../README.md#live-proof-on-fuji), rồi mở ba biên nhận Snowtrace trong bảng, lần lượt là chuyển 1 mUSDC thành công, `InvalidSecurityClearance` và `AgentRevoked`. | “Một giao dịch đã chuyển đúng 1 mUSDC cho MockPartner. Hai giao dịch tiếp theo trên màn hình bị két từ chối vì thiếu chữ ký hoặc vì agent đã mất quyền. Cả ba biên nhận đều kiểm tra được trên Fuji.” |
-| **2:35 – 2:45** | Hiện tiêu đề AegisAVAX và đường dẫn GitHub `github.com/tq11372/aegis-avax`. | *"AegisAVAX — công cụ bảo mật phi lưu ký cho kỷ nguyên AI Agent trên Avalanche. Toàn bộ mã nguồn và hướng dẫn tái lập nằm công khai trên GitHub. Cảm ơn Ban Giám Khảo."* |
+| **0:00 – 0:11** | Mở đầu ngắn (`Slide 01`) & giới thiệu 2 lớp kiến trúc AegisAVAX. | Chuyển thẳng vào giao diện thật `http://127.0.0.1:3000`. |
+| **0:11 – 0:26** | **Ca 1 — Tab `Tx Firewall` · `Chuyển hợp lệ`** | Anvil mô phỏng `50 → 47 mUSDC`, `Qwen` đối chiếu ý định trả **`SAFE`**. |
+| **0:26 – 0:42** | **Ca 2 — Tab `Tx Firewall` · `Phê duyệt vô hạn`** | Gắn cờ **`CRITICAL · UNLIMITED_APPROVAL`**, bảng `Decoded Events` bóc trần **`Approval · Không giới hạn (MAX_UINT256)`**. |
+| **0:42 – 0:54** | **Ca 3 — Tab `Tx Firewall` · `Địa chỉ gần giống`** | So khớp tiền tố/hậu tố với danh bạ `knownRecipients`, gắn cờ **`CRITICAL · ADDRESS_POISONING`**. |
+| **0:54 – 1:06** | **Ca 4 — Tab `Tx Firewall` · `Chuyển 90% số dư`** | State Diff dự báo rút `50 → 5 mUSDC` (`90%`), gắn cờ **`CRITICAL · DRAIN_PATTERN`**. |
+| **1:06 – 1:32** | **Ca 5 — Tab `AI Agent Sandbox` · `Chuyển 3 mUSDC đến MockPartner`** | Agent tự trả phí **`0,005 mUSDC`** qua `x402` (EIP-3009), nhận chữ ký `EIP-712` và `GuardVault` chuyển đúng `3 mUSDC` (`50 → 47 mUSDC`). |
+| **1:32 – 1:47** | **Ca 6 — `Kiểm tra hóa đơn sai số tiền`** (`3` vs `4 mUSDC`) | Cùng đích whitelist `MockPartner` và dưới trần `10`, nhưng Lớp 1 phát hiện lệch ý định và dừng cấp chữ ký `EIP-712`. |
+| **1:47 – 1:58** | **Ca 7 — `Mô phỏng lệnh thiếu chữ ký`** | Agent cố gọi thẳng `GuardVault` bỏ qua Lớp 1 → hợp đồng **`REVERT` cứng: `InvalidSecurityClearance()`**. |
+| **1:58 – 2:10** | **Ca 8 — `Lưu hạn mức` (`10 → 2 mUSDC`)** | Hạ trần chi tiêu trực tiếp trên UI → lệnh vượt trần bị chặn cứng với mã lỗi **`TxLimitExceeded`**. |
+| **2:10 – 2:22** | **Ca 9 — `Chặn người nhận` (`MockPartner`)** | Gỡ `MockPartner` khỏi whitelist → lệnh chuyển bị chặn cứng với mã lỗi **`TargetNotWhitelisted`**. |
+| **2:22 – 2:47** | **Ca 10 — `Kill switch · Thu hồi session key`** + cuộn bảng **`Biên nhận lịch sử trên Avalanche Fuji`** + `Slide 22`. | Trạng thái chuyển **`Agent đã khóa`** (`AgentRevoked`), đối chiếu 12 biên nhận thật trên Fuji, Own L1 `99321` và kết quả `496/500`. |
 
 ---
 
