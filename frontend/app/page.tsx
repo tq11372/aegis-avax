@@ -253,6 +253,19 @@ export default function Home() {
             </div>
             {tab === "firewall" ? (
               <>
+                <div className="preset-pills" role="group" aria-label="Chọn nhanh kịch bản">
+                  {labels.map((l, i) => (
+                    <button
+                      key={l}
+                      type="button"
+                      disabled={locked}
+                      data-active={index === i}
+                      onClick={() => state && preset(state, i)}
+                    >
+                      {l}
+                    </button>
+                  ))}
+                </div>
                 <label>
                   Kịch bản mẫu
                   <select
@@ -398,7 +411,7 @@ export default function Home() {
               <div className="vault-head">
                 <Wallet />
                 <strong>GuardVault</strong>
-                <span>
+                <span data-locked={state ? !state.active : undefined}>
                   {state?.active
                     ? "Agent hoạt động"
                     : state
