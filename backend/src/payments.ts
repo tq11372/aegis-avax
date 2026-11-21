@@ -32,7 +32,11 @@ export const price = {
   },
 };
 
-function facilitator(): FacilitatorClient {
+export function facilitator(feeLimits?: {
+  gas: bigint;
+  maxFeePerGas: bigint;
+  maxPriorityFeePerGas: bigint;
+}): FacilitatorClient {
   if (process.env.X402_FACILITATOR_URL)
     return new HTTPFacilitatorClient({ url: process.env.X402_FACILITATOR_URL });
   const key = process.env.RELAYER_PRIVATE_KEY as Hex | undefined;
@@ -68,7 +72,7 @@ function facilitator(): FacilitatorClient {
         args.functionName !== "transferWithAuthorization"
       )
         throw Error("Unsupported settlement");
-      return wallet.writeContract(args);
+      return wallet.writeContract({ ...args, ...feeLimits });
     },
     sendTransaction: async () => {
       throw Error("Only EIP-3009 settlement is enabled");

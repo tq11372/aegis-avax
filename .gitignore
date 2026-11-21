@@ -11,3 +11,7 @@ frontend/.next/
 .fuji-proof/
 
 .aegis-audit/
+
+# Local outputs from the team-authored regression suite
+docs/eval-benchmark-*.json
+docs/eval-replay-*.json

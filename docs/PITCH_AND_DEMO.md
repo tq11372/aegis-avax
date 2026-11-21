@@ -8,7 +8,7 @@ Tài liệu chuẩn bị cho **Vòng loại trực tuyến (50đ kỹ thuật)**
 
 > **Link Google Slides công khai (22 trang):** [https://docs.google.com/presentation/d/1GbwWTIyI_WBsYoN1tf5dfELDGwLOYKd3yoCp3-T3uqU/edit?usp=sharing](https://docs.google.com/presentation/d/1GbwWTIyI_WBsYoN1tf5dfELDGwLOYKd3yoCp3-T3uqU/edit?usp=sharing)
 >
-> **Link Video Demo công khai (`02:47`, Full HD 1080p, giọng nam tiếng Việt + phụ đề):** [https://drive.google.com/file/d/1lid3WKFfUcEIXGKZ0pjMfyysYwzzIgvp/view?usp=sharing](https://drive.google.com/file/d/1lid3WKFfUcEIXGKZ0pjMfyysYwzzIgvp/view?usp=sharing)
+> **Link Video Demo công khai (`02:34`, Full HD 1080p, giọng nam tiếng Việt + phụ đề):** [https://drive.google.com/file/d/1lid3WKFfUcEIXGKZ0pjMfyysYwzzIgvp/view?usp=sharing](https://drive.google.com/file/d/1lid3WKFfUcEIXGKZ0pjMfyysYwzzIgvp/view?usp=sharing)
 >
 > Bộ slide 16:9 dùng Roboto, có sơ đồ luồng, ảnh giao diện và liên kết tới biên nhận. [Bản PDF trong repo](AegisAVAX-Pitch.pdf)
 
@@ -78,9 +78,9 @@ Tài liệu chuẩn bị cho **Vòng loại trực tuyến (50đ kỹ thuật)**
 - **Số liệu:** **`0,005` mUSDC trên Fuji testnet** (`5.000` đơn vị cơ sở, thanh toán qua `x402` + `EIP-3009 transferWithAuthorization`).
 - **Bảo vệ ngân sách phí ở phía client:** Agent ký thanh toán qua `x402`. Bản demo giới hạn tổng phí được ký ở **`0,1 mUSDC mỗi phiên`** (`X402_SESSION_BUDGET_ATOMIC = 100000`, tối đa 20 lượt quét trả phí mỗi phiên MCP).
 
-### Slide 12 / 22 — Bằng chứng thực thi trên Avalanche Fuji (`BẰNG CHỨNG  /  AVALANCHE FUJI`)
-- **Tiêu đề:** *Một lần chuyển tiền đã xác nhận*
-- **Số liệu on-chain:** **`100 → 99` mUSDC trong két** (block `61407365` → `61407405`). `MockPartner` nhận `1 mUSDC` tại giao dịch [`0x4eda603d...b361ed`](https://testnet.snowtrace.io/tx/0x4eda603dacb0636bd1845fc9f3357cd1442430c9210b6f4dc8cac65018b361ed) (block `61407383`). Agent trả phí quét riêng.
+### Slide 12 / 22 — Một lệnh MCP trên Fuji
+
+- **Két 99 → 98 mUSDC.** MCP nhận HTTP 402 rồi 200. Agent trả 0,005 mUSDC ở block 61430093. Két chuyển 1 mUSDC cho MockPartner ở block 61430094, nonce lên 7. [Hai hash và log](fuji-mcp-proof.json)
 
 ### Slide 13 / 22 — Bằng chứng thu hồi quyền trên Fuji (`BẰNG CHỨNG  /  THU HỒI QUYỀN`)
 - **Tiêu đề:** *Sau khi chủ két thu hồi quyền, `AgentRevoked`*
@@ -89,11 +89,11 @@ Tài liệu chuẩn bị cho **Vòng loại trực tuyến (50đ kỹ thuật)**
 ### Slide 14 / 22 — Hạ tầng Avalanche L1 riêng (`HẠ TẦNG  /  AEGIS AUDIT`)
 - **Tiêu đề:** *Dấu vết cảnh báo trên L1 riêng*
 - **Số liệu:** **`99321`** — Chain ID của `Aegis Audit` (3 giao dịch P-Chain `CreateSubnetTx`, `CreateChainTx`, `ConvertSubnetToL1Tx` đã `Committed`).
-- **Minh bạch vận hành:** Ba giao dịch triển khai hợp đồng, cấp quyền và ghi bằng chứng ở block `1–3`. Mạng có một validator (`NodeID-JfjZnbPTuMLnFuqT5gwcRChkBy23sPT8G`); RPC hiện truy cập từ máy vận hành. Xem [`docs/aegis-l1-proof.json`](aegis-l1-proof.json).
+- **Minh bạch vận hành:** Ba giao dịch triển khai hợp đồng, cấp quyền và ghi bằng chứng ở block `1–3`. Mạng có một validator (`NodeID-JfjZnbPTuMLnFuqT5gwcRChkBy23sPT8G`); RPC hiện truy cập từ máy vận hành. [Bảng tra cứu và ba biên nhận](L1_RECEIPTS.md).
 
-### Slide 15 / 22 — Đánh giá 500 mẫu (`ĐÁNH GIÁ  /  BỘ QUÉT 500 MẪU`)
-- **Số liệu nổi bật:** **`496/500`** (`99,2%`) quyết định khớp nhãn của bộ mẫu nội bộ (`TP = 320, TN = 176, FP = 4, FN = 0`).
-- **Ngữ cảnh minh bạch:** `4` cảnh báo nhầm, `0` ca bỏ sót. Đội tự xây dựng bộ mẫu 5 tầng (`T1–T5`). Kết quả đo quyết định quét trước khi ký tại block `61419926`. Xem [`docs/eval-benchmark-500.json`](eval-benchmark-500.json).
+### Slide 15 / 22 — Giới hạn bộ hồi quy
+
+Bốn cảnh báo trái nhãn nội bộ. Hai câu có nhiều mức giá. Hai giao dịch gửi AVAX tới hợp đồng không nhận AVAX. Cả 500 ca và nhãn do đội tự xây. Chưa đo độ chính xác trên người dùng.
 
 ### Slide 16 / 22 — Phép thử đối chứng vai trò của Qwen (`ĐỐI CHỨNG  /  8 LỆNH CHUYỂN`)
 - **Tiêu đề:** *Qwen giúp gì trong phép thử này?*
@@ -113,8 +113,8 @@ Tài liệu chuẩn bị cho **Vòng loại trực tuyến (50đ kỹ thuật)**
 
 ### Slide 19 / 22 — Hướng dẫn giám khảo tự kiểm chứng (`KIỂM CHỨNG  /  HƯỚNG DẪN ĐỐI CHIẾU`)
 - **Tiêu đề:** *Ba kết quả, ba cách đối chiếu*
-  1. **[`Quyết định của bộ quét ↗`](eval-benchmark-500.json):** Mở 500 kết quả tại block `61419926`. So nhãn kỳ vọng với quyết định của API; 4 cảnh báo trái nhãn gốc, trong đó có 2 giao dịch thật sự revert khi mô phỏng.
-  2. **[`Tiền đã chuyển trên Fuji ↗`](https://testnet.snowtrace.io/tx/0x4eda603dacb0636bd1845fc9f3357cd1442430c9210b6f4dc8cac65018b361ed):** Mở biên nhận và đọc sự kiện `Transfer` của `mUSDC`. Kiểm người gửi, người nhận và `1.000.000` đơn vị cơ sở (`= 1 mUSDC`).
+  1. **[Quét trả phí qua MCP](fuji-mcp-proof.json).** Lệnh `npm run check:mcp-fuji` kiểm tra hai sự kiện chuyển tiền trên Fuji. Log của phiên lưu thứ tự HTTP 402 và 200.
+  2. **[`Tiền đã chuyển trên Fuji ↗`](https://testnet.snowtrace.io/tx/0xfb1d3cce2eeb596282b7b5aee0d3a9b22578f3ac410dcc314716d0686965815b):** Mở biên nhận và đọc sự kiện `Transfer` của `mUSDC`. Kiểm người gửi, người nhận và `1.000.000` đơn vị cơ sở (`= 1 mUSDC`).
   3. **[`Quyền đã bị thu hồi ↗`](fuji-live-proof.json):** Đối chiếu giao dịch thu hồi với lệnh chi kế tiếp bị `revert`. Mã `AgentRevoked` được kiểm bằng mô phỏng ở block trước.
 
 ### Slide 20 / 22 — Khung pháp lý Việt Nam 1 (`PHÁP LÝ VIỆT NAM  /  TÀI SẢN VÀ PHÍ DỊCH VỤ`)
@@ -133,40 +133,41 @@ Tài liệu chuẩn bị cho **Vòng loại trực tuyến (50đ kỹ thuật)**
 - **Tiêu đề:** *Kiểm chứng dự án*
 - **3 liên kết trực tiếp:**
   - [Mã nguồn và hướng dẫn chạy](https://github.com/tq11372/aegis-avax)
-  - [12 biên nhận minh chứng trên Fuji](../README.md#live-proof-on-fuji)
-  - [Bản build và kết quả CI](https://github.com/tq11372/aegis-avax/actions/runs/44893869785)
+  - [Biên nhận minh chứng trên Fuji](../README.md#live-proof-on-fuji)
+  - [Bản build và kết quả CI](https://github.com/tq11372/aegis-avax/actions/workflows/ci.yml)
 - **Chân trang:** `Trần Văn Quân · Team1 Vietnam UniHack 2026`
 
 ---
 
-## 2. Kịch bản Video Demo đã quay (`02:47` — Full HD 1080p, demo trên Anvil)
+## 2. Kịch bản Video Demo đã quay (`02:34` — Full HD 1080p, demo trên Anvil)
 
 > **Video công khai (không cần đăng nhập):** [AegisAVAX_Demo_Video.mp4 (Google Drive)](https://drive.google.com/file/d/1lid3WKFfUcEIXGKZ0pjMfyysYwzzIgvp/view?usp=sharing)
 >
 > Quay trực tiếp phiên ứng dụng chạy thật trên `http://127.0.0.1:3000` (Anvil fork từ trạng thái thật của Fuji, số dư đầu `50 mUSDC`) và kiểm thử lần lượt **đủ 10 chức năng & tình huống biên** trên cả 2 tab, kèm lồng tiếng AI giọng nam tiếng Việt và phụ đề đốt trực tiếp.
 
-### Diễn biến các kịch bản trong Video (`00:00 – 02:47`)
+### Diễn biến các kịch bản trong Video (`00:00 – 02:34`)
 
 | Mốc thời gian | Chức năng / Kịch bản kiểm thử trên màn hình | Kết quả kiểm chứng trực tiếp |
 | --- | --- | --- |
-| **0:00 – 0:11** | Mở đầu ngắn (`Slide 01`) & giới thiệu 2 lớp kiến trúc AegisAVAX. | Chuyển thẳng vào giao diện thật `http://127.0.0.1:3000`. |
-| **0:11 – 0:26** | **Ca 1 — Tab `Tx Firewall` · `Chuyển hợp lệ`** | Anvil mô phỏng `50 → 47 mUSDC`, `Qwen` đối chiếu ý định trả **`SAFE`**. |
-| **0:26 – 0:42** | **Ca 2 — Tab `Tx Firewall` · `Phê duyệt vô hạn`** | Gắn cờ **`CRITICAL · UNLIMITED_APPROVAL`**, bảng `Decoded Events` bóc trần **`Approval · Không giới hạn (MAX_UINT256)`**. |
-| **0:42 – 0:54** | **Ca 3 — Tab `Tx Firewall` · `Địa chỉ gần giống`** | So khớp tiền tố/hậu tố với danh bạ `knownRecipients`, gắn cờ **`CRITICAL · ADDRESS_POISONING`**. |
-| **0:54 – 1:06** | **Ca 4 — Tab `Tx Firewall` · `Chuyển 90% số dư`** | State Diff dự báo rút `50 → 5 mUSDC` (`90%`), gắn cờ **`CRITICAL · DRAIN_PATTERN`**. |
-| **1:06 – 1:32** | **Ca 5 — Tab `AI Agent Sandbox` · `Chuyển 3 mUSDC đến MockPartner`** | Agent tự trả phí **`0,005 mUSDC`** qua `x402` (EIP-3009), nhận chữ ký `EIP-712` và `GuardVault` chuyển đúng `3 mUSDC` (`50 → 47 mUSDC`). |
-| **1:32 – 1:47** | **Ca 6 — `Kiểm tra hóa đơn sai số tiền`** (`3` vs `4 mUSDC`) | Cùng đích whitelist `MockPartner` và dưới trần `10`, nhưng Lớp 1 phát hiện lệch ý định và dừng cấp chữ ký `EIP-712`. |
-| **1:47 – 1:58** | **Ca 7 — `Mô phỏng lệnh thiếu chữ ký`** | Agent cố gọi thẳng `GuardVault` bỏ qua Lớp 1 → hợp đồng **`REVERT` cứng: `InvalidSecurityClearance()`**. |
-| **1:58 – 2:10** | **Ca 8 — `Lưu hạn mức` (`10 → 2 mUSDC`)** | Hạ trần chi tiêu trực tiếp trên UI → lệnh vượt trần bị chặn cứng với mã lỗi **`TxLimitExceeded`**. |
-| **2:10 – 2:22** | **Ca 9 — `Chặn người nhận` (`MockPartner`)** | Gỡ `MockPartner` khỏi whitelist → lệnh chuyển bị chặn cứng với mã lỗi **`TargetNotWhitelisted`**. |
-| **2:22 – 2:47** | **Ca 10 — `Kill switch · Thu hồi session key`** + cuộn bảng **`Biên nhận lịch sử trên Avalanche Fuji`** + `Slide 22`. | Trạng thái chuyển **`Agent đã khóa`** (`AgentRevoked`), đối chiếu 12 biên nhận thật trên Fuji, Own L1 `99321` và kết quả `496/500`. |
+| **0:00 – 0:21** | Mở đầu ngắn (`Slide 01`) & giới thiệu 2 lớp kiến trúc AegisAVAX. | Chuyển thẳng vào giao diện thật `http://127.0.0.1:3000`. |
+| **0:21 – 0:35** | **Ca 1 — Tab `Tx Firewall` · `Chuyển hợp lệ`** | Anvil mô phỏng `50 → 47 mUSDC`, `Qwen` đối chiếu ý định trả **`SAFE`**. |
+| **0:35 – 0:49** | **Ca 2 — Tab `Tx Firewall` · `Phê duyệt vô hạn`** | Gắn cờ **`CRITICAL · UNLIMITED_APPROVAL`**, bảng `Decoded Events` bóc trần **`Approval · Không giới hạn (MAX_UINT256)`**. |
+| **0:49 – 1:01** | **Ca 3 — Tab `Tx Firewall` · `Địa chỉ gần giống`** | So khớp tiền tố/hậu tố với danh bạ `knownRecipients`, gắn cờ **`CRITICAL · ADDRESS_POISONING`**. |
+| **1:01 – 1:10** | **Ca 4 — Tab `Tx Firewall` · `Chuyển 90% số dư`** | State Diff dự báo rút `50 → 5 mUSDC` (`90%`), gắn cờ **`CRITICAL · DRAIN_PATTERN`**. |
+| **1:10 – 1:36** | **Ca 5 — Tab `AI Agent Sandbox` · `Chuyển 3 mUSDC đến MockPartner`** | Agent tự trả phí **`0,005 mUSDC`** qua `x402` (EIP-3009), nhận chữ ký `EIP-712` và `GuardVault` chuyển đúng `3 mUSDC` (`50 → 47 mUSDC`). |
+| **1:36 – 1:48** | **Ca 6 — `Kiểm tra hóa đơn sai số tiền`** (`3` vs `4 mUSDC`) | Cùng đích whitelist `MockPartner` và dưới trần `10`, nhưng Lớp 1 phát hiện lệch ý định và dừng cấp chữ ký `EIP-712`. |
+| **1:48 – 1:55** | **Ca 7 — `Mô phỏng lệnh thiếu chữ ký`** | Agent cố gọi thẳng `GuardVault` bỏ qua Lớp 1 → hợp đồng **`REVERT` cứng: `InvalidSecurityClearance()`**. |
+| **1:55 – 2:11** | **Ca 8 — `Lưu hạn mức` (`10 → 2 mUSDC`)** | Hạ trần chi tiêu trực tiếp trên UI → lệnh vượt trần bị chặn cứng với mã lỗi **`TxLimitExceeded`**. |
+| **2:11 – 2:20** | **Ca 9 — `Chặn người nhận` (`MockPartner`)** | Gỡ `MockPartner` khỏi whitelist → lệnh chuyển bị chặn cứng với mã lỗi **`TargetNotWhitelisted`**. |
+| **2:20 – 2:27** | Chủ két thu hồi quyền agent trên Anvil. | Trạng thái agent chuyển sang đã khóa. |
+| **2:27 – 2:34** | Thẻ kết nêu lượt MCP trên Fuji. | Két 99 → 98 mUSDC, agent trả phí 0,005 mUSDC. Hai hash công khai trong README. |
 
 ---
 
 ## 3. Bộ 10 câu hỏi Q&A kỹ thuật dự kiến & Gợi ý trả lời
 
 1. **Hỏi: Nếu LLM (`Qwen`) bị ảo giác hoặc sập dịch vụ thì có ký nhầm giao dịch xấu thành `SAFE` không?**
-   - **Trả lời:** Luật rủi ro và kiểm tra số tiền, tài sản, người nhận có thể bác lệnh trước Qwen. Khi cần model mà model lỗi, hệ thống trả MEDIUM và không cấp clearance. Hai lượt trên cùng bộ 500 ca ghi nhận 0 bỏ sót theo nhãn nội bộ. Chưa có dữ liệu để ước tính tỷ lệ bỏ sót ngoài bộ thử.
+   - **Trả lời:** Luật rủi ro và kiểm tra số tiền, tài sản, người nhận có thể bác lệnh trước Qwen. Khi cần model mà model lỗi, hệ thống trả MEDIUM và không cấp clearance. Chưa có dữ liệu để ước tính tỷ lệ bỏ sót ngoài bộ thử.
 
 2. **Hỏi: Kẻ tấn công lấy được chữ ký EIP-712 cũ rồi gửi lại (replay attack) hoặc dùng trên mạng khác thì sao?**
    - **Trả lời:** Không được. `CLEARANCE_TYPEHASH` trong `GuardVault.sol` ràng buộc đầy đủ `vault`, `agent`, `target`, `calldataHash = keccak256(data)`, `value`, `nonce`, `deadline`, cộng thêm `chainId` và `verifyingContract` trong EIP-712 domain. Mỗi lần `execute()`, `grantAgent()`, `revokeAgent()`, hay `pause()` thành công đều tăng `nonce`, vô hiệu hóa chữ ký dùng nonce cũ sau khi giao dịch được xác nhận.

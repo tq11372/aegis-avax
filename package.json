@@ -25,7 +25,9 @@
     "dev:demo": "node --env-file-if-exists=.env backend/scripts/demo.ts",
     "dev:web": "npm run dev -w frontend",
     "eval": "node --env-file-if-exists=.env evals/run_eval.ts",
-    "test": "node --test backend/test/*.test.ts"
+    "test": "node --test backend/test/*.test.ts",
+    "check:mcp-fuji": "node backend/scripts/check-mcp-fuji.ts",
+    "check:l1": "node backend/scripts/check-l1-receipts.ts"
   },
   "devDependencies": {
     "@types/node": "^24",

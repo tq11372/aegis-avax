@@ -1,0 +1,28 @@
+{
+  "chainId": 43113,
+  "exchanges": [
+    {
+      "status": 402,
+      "paymentHeader": false
+    },
+    {
+      "status": 200,
+      "paymentHeader": true
+    }
+  ],
+  "tool": "simulate_and_verify_tx",
+  "model": "qwen2.5-1.5b-instruct",
+  "verifier": "model",
+  "riskLevel": "SAFE",
+  "vault": "0x4d0DA228a21F02c83ee3aF70E6702a489cD1019F",
+  "agent": "0xa3128f3BcabcCE9c6BDc2186B586A39BDce9EdF1",
+  "relayer": "0x6fb936776cf69300F3Dc54EE9c29a12c86c5085D",
+  "payTo": "0xA233579CAee3BCF9dE050e66b75FfF06A6EB6270",
+  "partner": "0x1C552a98A274FFc69230816b2Bf892543E1c9ee8",
+  "token": "0x7620FaBA82e05bBb889f80F3E20429A81f2e7113",
+  "amountAtomic": "1000000",
+  "feeAtomic": "5000",
+  "nonceBefore": "6",
+  "feeHash": "0x72a543a050cb86add1fa8aa85eed06f454988041365fb7e902923941f038e1f6",
+  "executeHash": "0xfb1d3cce2eeb596282b7b5aee0d3a9b22578f3ac410dcc314716d0686965815b"
+}

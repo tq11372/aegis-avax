@@ -16,6 +16,7 @@ type Proof = {
   rows: Receipt[];
 };
 import { formatUnits } from "viem";
+import mcpProof from "../../docs/fuji-mcp-proof.json";
 export function LiveProof() {
   const [proof, setProof] = useState<Proof>(),
     [unavailable, setUnavailable] = useState(false);
@@ -47,10 +48,38 @@ export function LiveProof() {
       aria-labelledby="proof-title"
     >
       <h2 id="proof-title">Biên nhận lịch sử trên Avalanche Fuji</h2>
+      <p>
+        Lượt MCP trên Fuji · HTTP 402 → 200 ·{" "}
+        <a
+          href={"https://testnet.snowtrace.io/tx/" + mcpProof.feeHash}
+          target="_blank"
+          rel="noreferrer"
+        >
+          Phí 0,005 mUSDC
+        </a>
+        {" · "}
+        <a
+          href={"https://testnet.snowtrace.io/tx/" + mcpProof.executeHash}
+          target="_blank"
+          rel="noreferrer"
+        >
+          Két chuyển 1 mUSDC
+        </a>
+      </p>
+      <p>
+        <a
+          href="https://github.com/tq11372/aegis-avax/blob/main/docs/L1_RECEIPTS.md"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Tra cứu ba biên nhận trên L1 Aegis Audit
+        </a>
+      </p>
       {proof ? (
         <>
           <p>
-            Két {formatUnits(BigInt(proof.before.balance), 6)} →{" "}
+            Phiên kiểm tra trước đó · Két{" "}
+            {formatUnits(BigInt(proof.before.balance), 6)} →{" "}
             {formatUnits(BigInt(proof.after.balance), 6)} mUSDC · Nonce{" "}
             {proof.before.nonce} → {proof.after.nonce}
           </p>

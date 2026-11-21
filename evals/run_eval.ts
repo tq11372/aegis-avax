@@ -1221,6 +1221,7 @@ if (misses.length) {
 const payload =
   JSON.stringify(
     {
+      scope: "Team-authored regression fixtures and expectations; external accuracy has not been measured.",
       measuredAtUtc: new Date().toISOString(),
       fujiForkBlock: start.block,
       model: process.env.LLM_MODEL || "qwen2.5-1.5b-instruct",
