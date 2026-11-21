@@ -11,6 +11,8 @@
     "node": ">=22.18.0"
   },
   "scripts": {
+    "proof:fuji": "node --env-file-if-exists=.env backend/scripts/fuji-proof.ts",
+    "check:fuji": "node backend/scripts/check-fuji-proof.ts",
     "dev:backend": "npm run start -w backend",
     "dev:mcp": "npm run start -w mcp-server",
     "typecheck": "tsc --noEmit",

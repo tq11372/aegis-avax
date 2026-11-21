@@ -23,6 +23,7 @@ Tài liệu chuẩn bị cho **Vòng loại trực tuyến (50đ kỹ thuật)**
   - **5 luật rủi ro tất định bằng code thuần** (không phụ thuộc LLM): `UNLIMITED_APPROVAL`, `DRAIN_PATTERN`, `ADDRESS_POISONING`, `UNVERIFIED_OR_SCAM_CONTRACT`, `ABNORMAL_SLIPPAGE_OR_DANGEROUS_CALL`.
   - **AI Intent-vs-Execution Verifier** trả JSON + giải thích tiếng Việt; thiết kế **fail-closed** (lỗi model / lệch số tiền hoặc người nhận → chặn ký).
   - Chỉ cấp chữ ký **EIP-712 Security Clearance** khi `SAFE` và `intentMatch === true`.
+  - Bộ lọc prompt injection dùng biểu thức chính quy là lớp heuristic. Trước khi ký, backend đối chiếu số tiền và người nhận với calldata bằng quy tắc tất định. Khi thực thi, két kiểm tra chữ ký, hạn mức và danh sách cho phép.
 - **Lớp 2 — Cryptographic Guardrails (On-chain):**
   - Két phi lưu ký `GuardVault.sol` + `PolicyModule.sol`: ví AI Agent không giữ quỹ, chỉ dùng `Session Key`.
   - Khóa cứng on-chain: `txLimit`, `dailyCap` (cửa sổ trượt 24 giờ, giữ nguyên kể cả khi xoay session key), `tokenWhitelist`, `targetWhitelist`, kiểm tra chữ ký EIP-712 + `nonce` + `deadline`, và **Kill Switch** (`revokeAgent()` / `pause()`).
@@ -33,9 +34,9 @@ Tài liệu chuẩn bị cho **Vòng loại trực tuyến (50đ kỹ thuật)**
 - Toàn bộ hành vi chi tiêu (`AgentExecuted`), thu hồi (`AgentRevoked`) và bằng chứng chặn mối đe dọa (`ThreatAuditLog`) đều công khai, kiểm chứng được.
 
 ### Slide 5 — Trả lời Câu hỏi 2: *Why Avalanche?*
-- **Tốc độ chốt cuối dưới 1 giây:** Nút **Kill Switch** (`revokeAgent()` / `pause()`) khóa chết AI Agent tức thì và tự tăng `nonce` làm vô hiệu mọi clearance cũ.
-- **Phí gas cực thấp & EVM Cancun:** Tổng phí triển khai + cấu hình cả 7 hợp đồng (13 giao dịch trên Fuji) chỉ tốn `0.0000000007036 AVAX testnet`; phù hợp cho vi thanh toán **`0.005 USDC / lượt quét`** qua giao thức **`x402` (EIP-3009)**.
-- **Mở rộng theo kiến trúc Own Avalanche L1:** Tách riêng hợp đồng `ThreatAuditLog.sol` để ghi nhật ký mối đe dọa lên L1 riêng (`Aegis Audit`, `AEGIS`, Chain ID `99321`) với cơ chế **tự động chuyển dự phòng (failover) về Fuji trong `12–15 ms`** khi RPC L1 gián đoạn.
+- Giao dịch Kill Switch trên Fuji mất 3168 ms đến khi máy chạy thử nhận biên nhận. Lệnh sau đó của agent bị từ chối với `AgentRevoked`.
+- Agent đã thanh toán 0,005 mUSDC trên testnet bằng EIP-3009.
+- Aegis Audit đã tạo Subnet và Chain trên Fuji P-Chain. Mạng chưa có validator do dịch vụ Managed Node báo lỗi 500/502. ThreatAuditLog hiện ghi trên Fuji C-Chain.
 
 ### Slide 6 — Giao thức kinh tế Agent (`x402` + `aegis-mcp`) & Tiện ích Chrome MV3
 - **B2B / M2M `x402` (`POST /api/v1/agent/verify-tx`):** Trả `HTTP 402 Payment Required` (`5,000` đơn vị = `0.005 mUSDC`, `eip155:43113`), xác thực & thanh toán bằng **EIP-3009 (`transferWithAuthorization`)** qua header `PAYMENT-SIGNATURE` không cần tạo tài khoản hay trả phí theo tháng.
@@ -54,14 +55,15 @@ Tài liệu chuẩn bị cho **Vòng loại trực tuyến (50đ kỹ thuật)**
 - **Foundry Unit + Fuzz Tests:** **27/27 pass** (20 `GuardVault` gồm 256 lần fuzz, 5 `MockUSDC` EIP-3009, 2 `ScamRegistry`/`ThreatAuditLog`).
 - **Backend & MCP Tests:** **9/9 pass** + kiểm thử đầu cuối với mô hình thật `Qwen2.5-1.5B-Instruct` trên Anvil fork.
 - **Bộ Red-Team Eval 36 ca (block Fuji `61391624`):**
+  - Kết quả chỉ áp dụng cho bộ 36 ca do nhóm tự xây dựng. Nhóm chưa đánh giá trên dữ liệu tấn công thực tế.
   - 13/13 lệnh sạch duyệt đúng (gồm 2 câu tiếng Việt tự nhiên & 1 lệnh `approve` hạn mức nhỏ 5 mUSDC — 0 false positive) · 10/10 giao dịch rủi ro (phủ đủ 5 luật) bị chặn · 13/13 ca Prompt Injection, Jailbreak EOA lạ & lệch tài sản (`AVAX` vs `mUSDC`) bị chặn.
   - **Precision 100% · Recall 100% · Block Rate 100% · 0 lỗi dịch vụ · Số dư két giữ nguyên `50 → 50 mUSDC`**.
-- **Vòng 2 Smoke Tests:** Extension MV3 đạt trên Chromium; `ThreatAuditLog` failover giữa 2 mạng đạt **`9–15 ms`**, chặn ghi lặp ID.
+- Extension MV3 đã chạy trên Chromium. Phép thử chuyển dự phòng 12–15 ms dùng hai node Anvil cục bộ.
 
 ### Slide 9 — Trả lời Câu hỏi 3: *Mô hình doanh thu & Ranh giới pháp lý tại Việt Nam*
 - **Where does the money come from?**
   - **Người dùng cá nhân (B2C):** Quét giao dịch trên Web UI & Chrome Extension **miễn phí** (tạo độ phủ và dữ liệu mẫu mối đe dọa).
-  - **AI Agent / dApp / Ví đối tác (B2B & M2M):** Thu phí vi mô **`0.005 USDC / lượt quét`** qua giao thức **`x402`** trước mỗi lần AI tự động ký giao dịch, cộng gói chính sách bảo mật doanh nghiệp.
+  - **AI Agent / dApp / Ví đối tác (B2B & M2M):** Thu phí vi mô **`0.005 mUSDC trên testnet / lượt quét`** qua giao thức **`x402`** trước mỗi lần AI tự động ký giao dịch, cộng gói chính sách bảo mật doanh nghiệp.
 - **Tuân thủ ranh giới pháp lý tại Việt Nam:**
   - Công cụ phần mềm bảo mật **phi lưu ký (`non-custodial`)** — AegisAVAX không giữ tài sản, không trung gian thanh toán tiền pháp định.
   - **Không phát hành token đầu cơ**, không gọi vốn bán token.
@@ -70,11 +72,11 @@ Tài liệu chuẩn bị cho **Vòng loại trực tuyến (50đ kỹ thuật)**
 ### Slide 10 — Demo thực tế (Điểm nhấn 3 luồng)
 - **Luồng 1 (Lệnh sạch):** AI Agent chuyển `3 mUSDC` cho `MockPartner` → tự trả phí `0.005 mUSDC` qua `x402` → Anvil + Qwen duyệt `SAFE` → cấp EIP-712 → `GuardVault` thực thi thành công.
 - **Luồng 2 (Phishing & Prompt Injection):** `approve(MAX_UINT256)` kích hoạt cờ đỏ `UNLIMITED_APPROVAL`; hóa đơn sai người nhận/số tiền bị chặn trước khi ký.
-- **Luồng 3 (Bypass Lớp 1 & Kill Switch):** Gửi lệnh thiếu chữ ký thẳng vào `GuardVault` → hợp đồng **`REVERT` (`InvalidSecurityClearance`)** → bấm **`KILL SWITCH`** khóa chết Agent ngay lập tức.
+- **Luồng 3 (Bypass Lớp 1 & Kill Switch):** Gửi lệnh thiếu chữ ký thẳng vào `GuardVault` → hợp đồng **`REVERT` (`InvalidSecurityClearance`)** → bấm **`KILL SWITCH`** thu hồi quyền agent khi giao dịch được xác nhận.
 
 ### Slide 11 — Lộ trình phát triển & Tổng kết
-- **Đã hoàn thành:** 7 hợp đồng verified trên Fuji, Anvil Fork + 5 Rules + Qwen Verifier + x402 + `aegis-mcp`, Web UI 2 tab, Eval 30 ca, Chrome Extension MV3, `ThreatAuditLog` failover, và đăng ký `CreateSubnetTx` / `CreateChainTx` cho Own L1 `Aegis Audit` (`99321`) trên Fuji P-Chain.
-- **Hướng mở rộng sau cuộc thi:** Hoàn tất validator Own L1 cho mạng lưới ghi nhật ký đe dọa phân tán, tích hợp đa ví (Core/Safe), và kết nối cảnh báo liên chuỗi qua ICM/Teleporter.
+- **Đã hoàn thành:** 7 hợp đồng verified trên Fuji, Anvil Fork + 5 Rules + Qwen Verifier + x402 + `aegis-mcp`, Web UI 2 tab, Eval 36 ca, Chrome Extension MV3, `ThreatAuditLog` failover, và đăng ký `CreateSubnetTx` / `CreateChainTx` cho mạng riêng `Aegis Audit` (`99321`) trên Fuji P-Chain. Mạng chưa có validator.
+- **Hướng mở rộng sau cuộc thi:** Hoàn tất validator của Aegis Audit cho mạng lưới ghi nhật ký đe dọa phân tán, tích hợp đa ví (Core/Safe), và kết nối cảnh báo liên chuỗi qua ICM/Teleporter.
 - **Kêu gọi:** Link GitHub Repo + QR Code mở thẳng `GuardVault` trên Fuji Explorer.
 
 ---
@@ -89,7 +91,7 @@ Tài liệu chuẩn bị cho **Vòng loại trực tuyến (50đ kỹ thuật)**
 2. Mở sẵn 3 tab Chrome (không quay bằng camera điện thoại, không để phụ đề che ô input/kết quả):
    - **Tab 1:** `http://127.0.0.1:3000` (AegisAVAX Demo — cài sẵn Extension MV3 nếu muốn hiện khiên góc trang).
    - **Tab 2:** `GuardVault` đã xác minh trên [Avalanche Fuji Snowtrace](https://testnet.snowtrace.io/address/0x4d0DA228a21F02c83ee3aF70E6702a489cD1019F).
-   - **Tab 3:** GitHub `README.md` cuộn sẵn tới bảng kết quả **30 ca Red-Team Eval** & **Verified Contract Addresses**.
+   - **Tab 3:** Mở README tại [Live proof on Fuji](../README.md#live-proof-on-fuji).
 
 ### Diễn biến từng giây
 
@@ -98,8 +100,8 @@ Tài liệu chuẩn bị cho **Vòng loại trực tuyến (50đ kỹ thuật)**
 | **0:00 – 0:25** | Đứng tại Tab `Tx Firewall` của AegisAVAX. | *"Khi bạn ký một giao dịch Web3 hay trao ví cho AI Agent tự động, làm sao chắc chắn chuỗi calldata hex đó trả đúng người, đúng số tiền? Chỉ nhắc AI bằng prompt có thể bị Prompt Injection. AegisAVAX giải quyết bằng hai lớp: mô phỏng trạng thái thật trước khi ký và khóa cứng hạn mức bằng Smart Contract trên Avalanche."* |
 | **0:25 – 0:55** | Chuyển sang Tab `AI Agent Sandbox`. Chỉ vào số dư đầu `50 mUSDC`, hạn mức `10/lệnh`, `25/24h`. Bấm nút **`Chuyển 3 mUSDC đến MockPartner`**. Khi xong, mở 2 liên kết `Biên nhận Anvil` và `Thanh toán x402` trong `Lịch sử phiên`. | *"Ở luồng hợp lệ, AI Agent muốn chuyển 3 mUSDC cho MockPartner. Agent tự thanh toán vi mô 0.005 mUSDC qua giao thức x402 bằng EIP-3009. Aegis chạy giả lập trên Anvil fork từ Fuji, đối chiếu ý định bằng Qwen cục bộ rồi cấp chữ ký EIP-712. GuardVault xác thực chữ ký và chuyển đúng 3 mUSDC — phí quét của agent và quỹ trong két tách biệt hoàn toàn."* |
 | **0:55 – 1:25** | Chuyển qua Tab `Tx Firewall`. Chọn kịch bản mẫu **`Phê duyệt vô hạn`** rồi bấm **`Mô phỏng giao dịch`**. Chỉ vào cờ đỏ `UNLIMITED_APPROVAL`, bảng `Trước / Sau`, bảng **`Sự kiện giải mã (Decoded Events)`** hiện **`Approval · Không giới hạn (MAX_UINT256)`** và giải thích tiếng Việt (cùng khiên Extension nếu bật). | *"Với người dùng cá nhân, tab Tx Firewall miễn phí giúp bóc trần giao dịch lừa đảo trước khi ký. Khi mô phỏng lệnh approve vô hạn, số dư hiện tại chưa đổi nhưng bộ 5 luật tất định lập tức gắn cờ CRITICAL UNLIMITED_APPROVAL và bảng Sự kiện giải mã hiện rõ quyền Approval Không giới hạn (MAX_UINT256) gửi tới hợp đồng Drainer."* |
-| **1:25 – 2:05** | Về Tab `AI Agent Sandbox`. Bấm **`Kiểm tra hóa đơn sai người nhận`** → chỉ lý do từ chối cấp EIP-712. Sau đó bấm **`Kiểm tra lệnh thiếu chữ ký`** → chỉ rõ thông báo **`REVERT cứng: InvalidSecurityClearance()`**. Bấm nút đỏ **`Kill switch · Thu hồi session key`** → chỉ trạng thái `Agent đã khóa`. | *"Khi AI gặp hóa đơn độc hại bị Prompt Injection đổi người nhận hoặc số tiền, Lớp 1 phát hiện lệch ý định và từ chối ký clearance. Ngay cả khi agent cố tình bỏ qua Lớp 1 và gọi thẳng hợp đồng, GuardVault vẫn REVERT cứng với mã lỗi InvalidSecurityClearance(). Chủ ví chỉ cần bấm Kill Switch để thu hồi quyền agent ngay lập tức."* |
-| **2:05 – 2:35** | Bấm liên kết **`GuardVault trên Fuji Explorer`** ở chân trang (Tab 2 Snowtrace `GuardVault` verified) và mở Tab 3 (`README.md` bảng 7 contract + 36 ca Eval). | *"Toàn bộ 7 hợp đồng cốt lõi đã triển khai và xác minh mã nguồn exact_match trên Avalanche Fuji; phiên demo vừa chạy mô phỏng trên Anvil fork từ trạng thái thật của Fuji. Bộ đánh giá 36 kịch bản gồm cả tiếng Việt tự nhiên, jailbreak prompt injection và lệch tài sản đạt 100% precision, 100% recall, 0 mất quỹ, kèm 27/27 test Foundry đạt và cơ chế ghi ThreatAuditLog hỗ trợ Own L1 có dự phòng về Fuji."* |
+| **1:25 – 2:05** | Về Tab `AI Agent Sandbox`. Bấm **`Kiểm tra hóa đơn sai người nhận`** → chỉ lý do từ chối cấp EIP-712. Sau đó bấm **`Kiểm tra lệnh thiếu chữ ký`** → chỉ rõ thông báo **`REVERT cứng: InvalidSecurityClearance()`**. Bấm nút đỏ **`Kill switch · Thu hồi session key`** → chỉ trạng thái `Agent đã khóa`. | *"Khi AI gặp hóa đơn độc hại bị Prompt Injection đổi người nhận hoặc số tiền, Lớp 1 phát hiện lệch ý định và từ chối ký clearance. Ngay cả khi agent cố tình bỏ qua Lớp 1 và gọi thẳng hợp đồng, GuardVault vẫn REVERT cứng với mã lỗi InvalidSecurityClearance(). Chủ ví chỉ cần bấm Kill Switch để thu hồi quyền agent khi giao dịch được xác nhận."* |
+| **2:05 – 2:35** | Mở bảng [Live proof on Fuji](../README.md#live-proof-on-fuji), rồi mở ba biên nhận Snowtrace trong bảng, lần lượt là chuyển 1 mUSDC thành công, `InvalidSecurityClearance` và `AgentRevoked`. | “Một giao dịch đã chuyển đúng 1 mUSDC cho MockPartner. Hai giao dịch tiếp theo trên màn hình bị két từ chối vì thiếu chữ ký hoặc vì agent đã mất quyền. Cả ba biên nhận đều kiểm tra được trên Fuji.” |
 | **2:35 – 2:45** | Hiện tiêu đề AegisAVAX và đường dẫn GitHub `github.com/tq11372/aegis-avax`. | *"AegisAVAX — công cụ bảo mật phi lưu ký cho kỷ nguyên AI Agent trên Avalanche. Toàn bộ mã nguồn và hướng dẫn tái lập nằm công khai trên GitHub. Cảm ơn Ban Giám Khảo."* |
 
 ---
@@ -121,8 +123,8 @@ Tài liệu chuẩn bị cho **Vòng loại trực tuyến (50đ kỹ thuật)**
 5. **Hỏi: Tại sao Chrome Extension MV3 không ghi đè `window.ethereum` của Core Wallet hay MetaMask?**
    - **Trả lời:** Ghi đè `window.ethereum` dễ xung đột với chuẩn EIP-6963, CSP của trang web và rủi ro bảo mật khóa ví. Extension của AegisAVAX hoạt động ở chế độ Popup / Floating Shield độc lập, không chạm tới khóa ký của ví, đồng thời so khớp tên miền với blocklist MetaMask có bản dự phòng cục bộ.
 
-6. **Hỏi: Phần tích hợp Own Avalanche L1 hiện đang ở mức nào và nếu RPC L1 chết khi vận hành thì sao?**
-   - **Trả lời:** Hợp đồng `ThreatAuditLog.sol` đã được thiết kế độc lập cùng worker có cơ chế tự động kiểm tra `chainId`, quyền reporter, chống ghi trùng ID và **chuyển dự phòng sang `ThreatAuditLog` đã xác minh trên Fuji trong `12–15 ms`** khi RPC L1 từ chối kết nối (đã chứng minh qua `npm run test:audit` trên hai node Anvil riêng). Trên Fuji P-Chain cũng đã tạo sẵn Subnet (`KmstuF...`) và Chain `Aegis Audit` (`AEGIS`, Chain ID `99321`) bằng ví Console.
+6. **Hỏi: Phần tích hợp L1 riêng Aegis Audit hiện đang ở mức nào và nếu RPC L1 chết khi vận hành thì sao?**
+   - Aegis Audit đã tạo Subnet và Chain trên Fuji P-Chain. Mạng chưa có validator do dịch vụ Managed Node báo lỗi 500/502. ThreatAuditLog hiện ghi trên Fuji C-Chain. Chuyển dự phòng 12–15 ms được đo trên hai node Anvil cục bộ. Worker kiểm tra chain ID, quyền reporter và ID trùng trước khi ghi.
 
 7. **Hỏi: Tại sao trong `foundry.toml` lại chốt `evm_version = "cancun"` và OpenZeppelin `v5.6.1`?**
    - **Trả lời:** Để tương thích tuyệt đối với Avalanche Fuji C-Chain — tránh các bản OpenZeppelin mới hơn có thể sinh opcode `CLZ` (Osaka) chưa được Fuji hỗ trợ, đảm bảo cả 7 hợp đồng biên dịch, triển khai và xác minh `exact_match` trơn tru.

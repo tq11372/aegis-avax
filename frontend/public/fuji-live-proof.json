@@ -1,0 +1,141 @@
+{
+  "chainId": 43113,
+  "completed": true,
+  "vault": "0x4d0DA228a21F02c83ee3aF70E6702a489cD1019F",
+  "agent": "0xa3128f3BcabcCE9c6BDc2186B586A39BDce9EdF1",
+  "before": {
+    "block": "61407365",
+    "nonce": "1",
+    "balance": "100000000",
+    "partnerBalance": "0"
+  },
+  "after": {
+    "block": "61407405",
+    "nonce": "4",
+    "balance": "99000000",
+    "partnerBalance": "1000000"
+  },
+  "notes": [],
+  "rows": [
+    {
+      "step": "faucet",
+      "title": "Faucet mUSDC cho agent",
+      "expected": "success",
+      "observedError": null,
+      "status": "success",
+      "hash": "0x29fadcd8a85bc2ce3e15bcb75bca015eab1533ef1e50fc063d4dc22955b3f881",
+      "block": "61407371",
+      "gasUsed": "50609",
+      "latencyMs": 5120,
+      "explorer": "https://testnet.snowtrace.io/tx/0x29fadcd8a85bc2ce3e15bcb75bca015eab1533ef1e50fc063d4dc22955b3f881"
+    },
+    {
+      "step": "fee",
+      "title": "Phí x402 · 0,005 mUSDC",
+      "expected": "success",
+      "observedError": null,
+      "status": "success",
+      "hash": "0xd3b2f2fba87ae13388ab196e7cf9a83b1ae9085fce2acc9cf3ad9acf52e6592b",
+      "block": "61407377",
+      "gasUsed": "82778",
+      "latencyMs": 3748,
+      "explorer": "https://testnet.snowtrace.io/tx/0xd3b2f2fba87ae13388ab196e7cf9a83b1ae9085fce2acc9cf3ad9acf52e6592b"
+    },
+    {
+      "step": "execute",
+      "title": "Két chuyển 1 mUSDC đến MockPartner",
+      "expected": "success",
+      "observedError": null,
+      "status": "success",
+      "hash": "0x4eda603dacb0636bd1845fc9f3357cd1442430c9210b6f4dc8cac65018b361ed",
+      "block": "61407383",
+      "gasUsed": "162308",
+      "latencyMs": 2448,
+      "explorer": "https://testnet.snowtrace.io/tx/0x4eda603dacb0636bd1845fc9f3357cd1442430c9210b6f4dc8cac65018b361ed"
+    },
+    {
+      "step": "unsigned",
+      "title": "Thiếu clearance",
+      "expected": "reverted",
+      "observedError": "InvalidSecurityClearance",
+      "status": "reverted",
+      "hash": "0x5681cbf564b3a13547217410ed7546249ab8549a4465534d51b3bd3476a864bc",
+      "block": "61407384",
+      "gasUsed": "150000",
+      "latencyMs": 2622,
+      "explorer": "https://testnet.snowtrace.io/tx/0x5681cbf564b3a13547217410ed7546249ab8549a4465534d51b3bd3476a864bc"
+    },
+    {
+      "step": "limit",
+      "title": "Chuyển vượt hạn mức",
+      "expected": "reverted",
+      "observedError": "TxLimitExceeded",
+      "status": "reverted",
+      "hash": "0x11157155029a2596a5e7d1b3c7a38732d7ccd33122e25ef978202e8152d6dd78",
+      "block": "61407385",
+      "gasUsed": "150000",
+      "latencyMs": 4268,
+      "explorer": "https://testnet.snowtrace.io/tx/0x11157155029a2596a5e7d1b3c7a38732d7ccd33122e25ef978202e8152d6dd78"
+    },
+    {
+      "step": "recipient",
+      "title": "Người nhận ngoài danh sách",
+      "expected": "reverted",
+      "observedError": "TargetNotWhitelisted",
+      "status": "reverted",
+      "hash": "0x3eb60a7b223b3ff2548c389deb13b2f55515d19e095755bc61c1f30640651962",
+      "block": "61407387",
+      "gasUsed": "150000",
+      "latencyMs": 4673,
+      "explorer": "https://testnet.snowtrace.io/tx/0x3eb60a7b223b3ff2548c389deb13b2f55515d19e095755bc61c1f30640651962"
+    },
+    {
+      "step": "revoke",
+      "title": "Chủ két thu hồi quyền agent",
+      "expected": "success",
+      "observedError": null,
+      "status": "success",
+      "hash": "0xc3a01fdfae413b82ac008e7f2164fa15ed3ef47f17cc21a44d3936cd9545652d",
+      "block": "61407392",
+      "gasUsed": "34821",
+      "latencyMs": 3168,
+      "explorer": "https://testnet.snowtrace.io/tx/0xc3a01fdfae413b82ac008e7f2164fa15ed3ef47f17cc21a44d3936cd9545652d"
+    },
+    {
+      "step": "revoked",
+      "title": "Agent thử chi sau thu hồi",
+      "expected": "reverted",
+      "observedError": "AgentRevoked",
+      "status": "reverted",
+      "hash": "0xc73a7ca7d57e994fad2f624f4381c514812d4bc9be27edee77a3dc6571cec01c",
+      "block": "61407396",
+      "gasUsed": "150000",
+      "latencyMs": 3638,
+      "explorer": "https://testnet.snowtrace.io/tx/0xc73a7ca7d57e994fad2f624f4381c514812d4bc9be27edee77a3dc6571cec01c"
+    },
+    {
+      "step": "grant",
+      "title": "Chủ két cấp lại quyền agent",
+      "expected": "success",
+      "observedError": null,
+      "status": "success",
+      "hash": "0x978877c5a7239fd52ceb1a0adc8d210569e6ac0722841c20a4b860cb2a7061d3",
+      "block": "61407401",
+      "gasUsed": "52783",
+      "latencyMs": 2994,
+      "explorer": "https://testnet.snowtrace.io/tx/0x978877c5a7239fd52ceb1a0adc8d210569e6ac0722841c20a4b860cb2a7061d3"
+    },
+    {
+      "step": "audit",
+      "title": "Ghi bằng chứng cảnh báo",
+      "expected": "success",
+      "observedError": null,
+      "status": "success",
+      "hash": "0xdbe110f7f8080a53b1ab157633eebf01a26f70c36d84cf39d7fd5df1896be59c",
+      "block": "61407405",
+      "gasUsed": "49529",
+      "latencyMs": 2005,
+      "explorer": "https://testnet.snowtrace.io/tx/0xdbe110f7f8080a53b1ab157633eebf01a26f70c36d84cf39d7fd5df1896be59c"
+    }
+  ]
+}

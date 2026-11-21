@@ -1,12 +1,16 @@
 # AegisAVAX
 
+[![CI](https://github.com/tq11372/aegis-avax/actions/workflows/ci.yml/badge.svg)](https://github.com/tq11372/aegis-avax/actions/workflows/ci.yml)
+
+🎬 Video demo đang chờ URL · [📑 Slides](https://docs.google.com/presentation/d/1GbwWTIyI_WBsYoN1tf5dfELDGwLOYKd3yoCp3-T3uqU/preview) · [GuardVault trên Snowtrace](https://testnet.snowtrace.io/address/0x4d0DA228a21F02c83ee3aF70E6702a489cD1019F) · [🔴 Live proof on Fuji](#live-proof-on-fuji)
+
 **Tường lửa giao dịch trước khi ký & Két bảo vệ AI Agent trên Avalanche** • Team1 Vietnam UniHack 2026.
 
-AegisAVAX chặn mất tiền cho người dùng Web3 và khóa cứng quyền chi tiêu của AI Agent bằng **2 lớp độc lập**:
+AegisAVAX kiểm tra giao dịch trước khi ký và giới hạn quyền chi tiêu của AI agent bằng hai lớp.
 1. **Lớp 1 — Pre-Execution Firewall (Off-chain trên Anvil Fork):** Chạy thử calldata thô trên trạng thái thật của Avalanche Fuji để đọc **`State Diff`**, quét **5 luật rủi ro tất định** (`UNLIMITED_APPROVAL`, `DRAIN_PATTERN`, `ADDRESS_POISONING`, `UNVERIFIED_OR_SCAM_CONTRACT`, `ABNORMAL_SLIPPAGE_OR_DANGEROUS_CALL`), đối chiếu ý định bằng LLM (fail-closed) và chỉ cấp chữ ký **EIP-712 Security Clearance** khi `SAFE` & khớp ý định.
 2. **Lớp 2 — Cryptographic Guardrails (On-chain trên Avalanche Fuji):** Hợp đồng `GuardVault` + `PolicyModule` phi lưu ký cưỡng chế cứng `txLimit`, `dailyCap` (cửa sổ trượt 24 giờ dùng tìm kiếm nhị phân $O(\log n)$, giữ nguyên khi đổi session key), `tokenWhitelist`, `targetWhitelist`, xác thực chữ ký EIP-712 chống replay và nút **Kill Switch** (`revokeAgent()` / `pause()`).
 
-Bảy hợp đồng cốt lõi đã triển khai và xác minh mã nguồn (`exact_match`) trên **Avalanche Fuji C-Chain (`43113`)**. [Địa chỉ, giao dịch và bằng chứng xác minh](#verified-contract-addresses) · [Dàn ý Slide, Kịch bản Demo & Q&A](docs/PITCH_AND_DEMO.md) · [Nhật ký bàn giao](HANDOFF.md)
+Bảy hợp đồng cốt lõi đã triển khai và xác minh mã nguồn (`exact_match`) trên **Avalanche Fuji C-Chain (`43113`)**. [Địa chỉ, giao dịch và bằng chứng xác minh](#verified-contract-addresses) · [Dàn ý Slide, Kịch bản Demo & Q&A](docs/PITCH_AND_DEMO.md)
 
 ```mermaid
 flowchart LR
@@ -16,7 +20,7 @@ flowchart LR
     Sim["Anvil Fork Simulator (Fuji state)"] --> Rules["5 Deterministic Risk Rules + ScamRegistry"]
     Rules --> LLM["AI Intent Verifier (JSON tiếng Việt, fail-closed)"]
     LLM -->|SAFE & intentMatch| Signer["EIP-712 Clearance Signer"]
-    LLM -->|MEDIUM / CRITICAL| Audit["ThreatAuditLog Worker (Own L1 -> Fuji fallback)"]
+    LLM -->|MEDIUM / CRITICAL| Audit["ThreatAuditLog (Fuji; L1 riêng: đang chờ validator)"]
   end
   Signer -->|Signature + deadline + nonce| Vault["Lớp 2 · GuardVault + PolicyModule (Fuji 43113)"]
   Vault -->|Kiểm tra limit, whitelist, Kill Switch| Target["MockPartner / ERC-20 Transfer"]
@@ -25,6 +29,35 @@ flowchart LR
 ## What it does
 
 **Demo cục bộ.** Mở [AegisAVAX trên máy](http://127.0.0.1:3000). Tab Tx Firewall mô phỏng calldata miễn phí và hiển thị số dư trước/sau. Tab AI Agent Sandbox dùng ví thử trên Anvil, có thanh toán x402, hạn mức, danh sách người nhận và thu hồi session key. Biên nhận của phiên demo mở trên máy. Địa chỉ triển khai công khai ở bảng Fuji bên dưới.
+
+## Live proof on Fuji
+
+Tại block 61407365, két có 100 mUSDC và nonce 1. Tại block 61407405, két còn 99 mUSDC, MockPartner nhận 1 mUSDC và nonce đạt 4. Phí quét 0,005 mUSDC do agent trả riêng. Script chạy mô phỏng trên Anvil fork, kiểm tra ý định bằng Qwen và lấy clearance qua backend. Trên Fuji, script gửi trực tiếp giao dịch thanh toán EIP-3009 của x402. Bài kiểm thử MCP trên Anvil kiểm tra cả lượt HTTP 402 và lượt gửi lại kèm chữ ký.
+
+| Bước | Trạng thái | Lỗi khi mô phỏng | Block | Gas | Xác nhận (ms) | Biên nhận |
+| --- | --- | --- | ---: | ---: | ---: | --- |
+| Faucet mUSDC cho agent | success | — | 61407371 | 50609 | 5120 | [0x29fadcd8a8…](https://testnet.snowtrace.io/tx/0x29fadcd8a85bc2ce3e15bcb75bca015eab1533ef1e50fc063d4dc22955b3f881) |
+| Phí x402 · 0,005 mUSDC | success | — | 61407377 | 82778 | 3748 | [0xd3b2f2fba8…](https://testnet.snowtrace.io/tx/0xd3b2f2fba87ae13388ab196e7cf9a83b1ae9085fce2acc9cf3ad9acf52e6592b) |
+| Két chuyển 1 mUSDC đến MockPartner | success | — | 61407383 | 162308 | 2448 | [0x4eda603dac…](https://testnet.snowtrace.io/tx/0x4eda603dacb0636bd1845fc9f3357cd1442430c9210b6f4dc8cac65018b361ed) |
+| Thiếu clearance | reverted | InvalidSecurityClearance | 61407384 | 150000 | 2622 | [0x5681cbf564…](https://testnet.snowtrace.io/tx/0x5681cbf564b3a13547217410ed7546249ab8549a4465534d51b3bd3476a864bc) |
+| Chuyển vượt hạn mức | reverted | TxLimitExceeded | 61407385 | 150000 | 4268 | [0x1115715502…](https://testnet.snowtrace.io/tx/0x11157155029a2596a5e7d1b3c7a38732d7ccd33122e25ef978202e8152d6dd78) |
+| Người nhận ngoài danh sách | reverted | TargetNotWhitelisted | 61407387 | 150000 | 4673 | [0x3eb60a7b22…](https://testnet.snowtrace.io/tx/0x3eb60a7b223b3ff2548c389deb13b2f55515d19e095755bc61c1f30640651962) |
+| Chủ két thu hồi quyền agent | success | — | 61407392 | 34821 | 3168 | [0xc3a01fdfae…](https://testnet.snowtrace.io/tx/0xc3a01fdfae413b82ac008e7f2164fa15ed3ef47f17cc21a44d3936cd9545652d) |
+| Agent thử chi sau thu hồi | reverted | AgentRevoked | 61407396 | 150000 | 3638 | [0xc73a7ca7d5…](https://testnet.snowtrace.io/tx/0xc73a7ca7d57e994fad2f624f4381c514812d4bc9be27edee77a3dc6571cec01c) |
+| Chủ két cấp lại quyền agent | success | — | 61407401 | 52783 | 2994 | [0x978877c5a7…](https://testnet.snowtrace.io/tx/0x978877c5a7239fd52ceb1a0adc8d210569e6ac0722841c20a4b860cb2a7061d3) |
+| Ghi bằng chứng cảnh báo | success | — | 61407405 | 49529 | 2005 | [0xdbe110f7f8…](https://testnet.snowtrace.io/tx/0xdbe110f7f8080a53b1ab157633eebf01a26f70c36d84cf39d7fd5df1896be59c) |
+
+Bốn biên nhận `reverted` là kết quả mong đợi. Tên lỗi lấy từ mô phỏng và được đối chiếu bằng cách đọc lại block trước giao dịch. Cột thời gian ghi khoảng chờ ở máy chạy script đến khi nhận biên nhận, gồm cả việc lưu thông tin gửi và truy vấn RPC. Chạy `npm run check:fuji` để đối chiếu bằng RPC chỉ đọc. [JSON](docs/fuji-live-proof.json) · [Ảnh giao diện](docs/fuji-live-proof.png)
+
+Hai giao dịch bổ sung do giao diện gửi bằng keystore của owner qua ví thử nghiệm EIP-1193 trong Chromium. Giao diện đo từ lúc ví trả hash đến lúc nhận biên nhận. Agent đã được cấp lại quyền. [Thu hồi · 3038 ms](https://testnet.snowtrace.io/tx/0x58bbe66be17945a793806bad15a85f6fa2be039f054e14c91e6340bca27ec066) · [Cấp lại · 2294 ms](https://testnet.snowtrace.io/tx/0x8d0f2242af805b2ad385c78f0927c57db9d26ef4ac7c889d09784536681dc6f1)
+
+## Quickstart (giám khảo)
+
+| Cách kiểm tra | Thao tác từ thư mục gốc |
+| --- | --- |
+| A · Hợp đồng | Với Foundry và Node đã cài, chạy `cd contracts`, `npm ci`, rồi `forge test -vv`. |
+| B · Backend và MCP | Với Node 22.18 trở lên, chạy `npm ci`, `npm run typecheck`, rồi `npm test`. |
+| C · Demo đầy đủ | Sau A và B, tạo `.env` từ `.env.example`. Đặt Anvil trên PATH hoặc khai báo `ANVIL_BIN`. Điền `LLM_BASE_URL`, `LLM_MODEL`, `LLM_API_KEY` theo endpoint Chat Completions tương thích OpenAI có hỗ trợ JSON. Có thể dùng Qwen cục bộ hoặc endpoint sẵn có. Chạy `npm run dev:demo` và `npm run dev:web` ở hai terminal. Mở [giao diện](http://127.0.0.1:3000), rồi chạy `npm run eval` ở terminal khác. |
 
 ### Chạy giao diện và bộ đánh giá
 
@@ -35,6 +68,8 @@ Từ gốc repo, chạy `npm ci`, cài phụ thuộc & build hợp đồng (`cd 
 3. `npm run dev:web` mở giao diện ở cổng 3000. Để dùng bản production, chạy `npm run build -w frontend` và `npm run start -w frontend`.
 
 Khi két đang rảnh, chạy `npm run eval` từ terminal khác. Ở block nguồn **61391624**, ngày 21/11/2026, kết quả trên Anvil với Qwen2.5-1.5B-Instruct Q4_K_M như sau (**36/36 đạt 100%**).
+
+Kết quả chỉ áp dụng cho bộ 36 ca do nhóm tự xây dựng. Nhóm chưa đánh giá trên dữ liệu tấn công thực tế. Bộ lọc prompt injection dùng biểu thức chính quy là lớp heuristic. Trước khi ký, backend đối chiếu số tiền và người nhận với calldata bằng quy tắc tất định. Khi thực thi, két kiểm tra chữ ký, hạn mức và danh sách cho phép.
 
 | Nhóm ca | Kết quả quan sát |
 | --- | --- |
@@ -57,9 +92,9 @@ Bước 1 triển khai két `GuardVault` và bộ quy tắc `PolicyModule`. Ch�
 
 **1. Vì sao phải kiểm tra on-chain? (*Why on-chain?*)** Dặn AI qua System Prompt hoặc lớp lọc off-chain có thể bị vượt qua bởi Prompt Injection hoặc rò rỉ khóa gọi API. Chỉ **Smart Contract on-chain** (`GuardVault` + `PolicyModule`) mới cưỡng chế cứng bằng mật mã ngay lúc thực thi EVM: dù agent có session key hợp lệ và cố gọi thẳng hợp đồng bỏ qua Lớp 1, giao dịch vẫn `REVERT` với mã lỗi tường minh (`InvalidSecurityClearance`, `TargetNotWhitelisted`, `TxLimitExceeded`, `DailyCapExceeded`, `AgentRevoked`). Thu hồi quyền (`revokeAgent()` / `pause()`) tăng `nonce` ngay khi giao dịch được mạng xác nhận, vô hiệu mọi chữ ký cũ.
 
-**2. Vì sao chọn Avalanche? (*Why Avalanche?*)** Avalanche C-Chain (Fuji `43113`) có thời gian tạo khối ngắn và độ trễ chốt cuối nhanh giúp nút **Kill Switch** có hiệu lực tức thì và fork mô phỏng bám sát trạng thái mới nhất; phí gas siêu thấp (cả 13 giao dịch triển khai + cấu hình 7 hợp đồng tốn `0,00000000070361181 AVAX testnet`) phù hợp cho vi thanh toán **`0,005 mUSDC / lượt quét`** qua `x402` (EIP-3009). Đồng thời kiến trúc **Avalanche L1** cho phép tách `ThreatAuditLog` sang L1 riêng kèm tự động chuyển dự phòng về Fuji trong `12–15 ms`.
+**2. Vì sao chọn Avalanche?** Trên Fuji C-Chain (43113), máy chạy thử nhận biên nhận thu hồi quyền sau 3168 ms. Lệnh tiếp theo của agent bị từ chối với `AgentRevoked`. Vi thanh toán dùng 0,005 mUSDC trên testnet. [Biên nhận và số liệu](#live-proof-on-fuji)
 
-**3. Mô hình doanh thu & Ranh giới pháp lý tại Việt Nam (*Where does the money come from & Legal limits in VN?*)** Người dùng cá nhân sử dụng Web UI (`Tx Firewall`) và Chrome Extension **miễn phí**. Các AI Agent / dApp bên thứ 3 trả phí vi mô **`0,005 mUSDC / lượt`** (`5.000` đơn vị) qua giao thức **`x402` v2 (EIP-3009)** trên route `/api/v1/agent/verify-tx` và MCP server `aegis-mcp` mà không cần tạo tài khoản. Về pháp lý: AegisAVAX là công cụ phần mềm bảo mật **phi lưu ký (`non-custodial`)** — không giữ hộ tài sản, **không phát hành token đầu cơ**, không huy động vốn; phạm vi hiện tại chạy hoàn toàn trên Testnet với token thử nghiệm. [Dàn ý Slide, Kịch bản Demo & Q&A](docs/PITCH_AND_DEMO.md) · [Trạng thái và tài liệu bàn giao](HANDOFF.md)
+**3. Mô hình doanh thu & Ranh giới pháp lý tại Việt Nam (*Where does the money come from & Legal limits in VN?*)** Người dùng cá nhân sử dụng Web UI (`Tx Firewall`) và Chrome Extension **miễn phí**. Các AI Agent / dApp bên thứ 3 trả phí vi mô **`0,005 mUSDC / lượt`** (`5.000` đơn vị) qua giao thức **`x402` v2 (EIP-3009)** trên route `/api/v1/agent/verify-tx` và MCP server `aegis-mcp` mà không cần tạo tài khoản. Về pháp lý: AegisAVAX là công cụ phần mềm bảo mật **phi lưu ký (`non-custodial`)** — không giữ hộ tài sản, **không phát hành token đầu cơ**, không huy động vốn; phạm vi hiện tại chạy hoàn toàn trên Testnet với token thử nghiệm. [Dàn ý Slide, Kịch bản Demo & Q&A](docs/PITCH_AND_DEMO.md)
 
 ## How to run
 
@@ -69,7 +104,7 @@ Trong `chrome://extensions`, bật Developer mode, chọn Load unpacked và ch�
 
 Để kiểm thử extension trong một hồ sơ Chromium tạm, chạy ba dịch vụ demo bên trên, `npx playwright install chromium`, rồi `npm run test:extension`. Chạy `npm run test:audit` để tự tạo hai Anvil, ghi và đọc sự kiện `ThreatLogged` trên cả hai mạng, kiểm tra ID trùng và thời gian chuyển dự phòng.
 
-Để triển khai lên **Own L1 testnet**, tạo chain EVM trong Builder Console, khởi chạy validator, lưu URL RPC và lấy chain ID từ chính RPC. Phân bổ gas native cho deployer và reporter. Đặt `AUDIT_L1_RPC_URL`, `AUDIT_L1_CHAIN_ID`, `DEPLOYER_ADDRESS`, `AUDIT_REPORTER_ADDRESS` trong môi trường terminal. Trong `contracts/`, chạy lệnh sau để mô phỏng. Sau khi xác nhận chain ID, chạy lại với `--broadcast --account <tên-keystore>` để ký và lưu địa chỉ từ biên nhận triển khai. [Avalanche Builder Console](https://build.avax.network/console/create-l1)
+Để triển khai lên **L1 riêng sau khi có validator**, tạo chain EVM trong Builder Console, khởi chạy validator, lưu URL RPC và lấy chain ID từ chính RPC. Phân bổ gas native cho deployer và reporter. Đặt `AUDIT_L1_RPC_URL`, `AUDIT_L1_CHAIN_ID`, `DEPLOYER_ADDRESS`, `AUDIT_REPORTER_ADDRESS` trong môi trường terminal. Trong `contracts/`, chạy lệnh sau để mô phỏng. Sau khi xác nhận chain ID, chạy lại với `--broadcast --account <tên-keystore>` để ký và lưu địa chỉ từ biên nhận triển khai. [Avalanche Builder Console](https://build.avax.network/console/create-l1)
 
 ```powershell
 forge script script/DeployAudit.s.sol:DeployAudit --rpc-url $env:AUDIT_L1_RPC_URL --sender $env:DEPLOYER_ADDRESS
@@ -196,8 +231,8 @@ Ngày 20/11/2026, Fuji (chain ID `43113`) xác nhận 13 giao dịch từ block 
 
 Tại block `61380210`, két giữ **100 mUSDC**, đang hoạt động và yêu cầu chữ ký clearance. Hạn mức là **10 mUSDC/giao dịch** và **25 mUSDC/24 giờ**. MockPartner nằm trong danh sách người nhận được phép. MockDrainer đã được gắn cờ và không có quyền nhận từ agent. [Biên nhận nạp két](https://testnet.snowtrace.io/tx/0x99e3a10babd08e6c17ffbb43021956e12426bb25347b686e0078221ea4cf231f)
 
-### Trạng thái Own Avalanche L1 (`Aegis Audit`, `AEGIS`, EVM Chain ID `99321`)
+### Aegis Audit (AEGIS, chain ID 99321) chưa có validator
 
 - **Subnet (`CreateSubnetTx` trên Fuji P-Chain):** [`KmstuFWyaPpv5H6WktTxpuwE7NzCBANM1KfNCWirk8rFaTaH2`](https://build.avax.network/explorer/fuji/p-chain/tx/KmstuFWyaPpv5H6WktTxpuwE7NzCBANM1KfNCWirk8rFaTaH2)
 - **Blockchain (`CreateChainTx` trên Fuji P-Chain):** [`2NLmJSAC471YuC8Eyiyjp7FtrEdMuFWXeL2guuFKH2CyUm5NmF`](https://build.avax.network/explorer/fuji/p-chain/tx/2NLmJSAC471YuC8Eyiyjp7FtrEdMuFWXeL2guuFKH2CyUm5NmF)
-- **Cơ chế dự phòng `ThreatAuditLog`:** Đã kiểm chứng trên hai node Anvil độc lập qua `npm run test:audit` (tự động ghi sự kiện, chống ghi trùng ID và chuyển dự phòng trong `12–15 ms` khi RPC L1 chính từ chối kết nối). Khi dịch vụ Managed Testnet Node của Builder Hub hoàn tất cấp node validator cho subnet trên, chỉ cần chạy `DeployAudit.s.sol` và `npm run verify:audit`; trong thời gian chờ, hệ thống dùng `ThreatAuditLog` đã xác minh trên Fuji (`0x1c755dE79A9bFd54Cf0c559C97FfeDC58BF1Fec6`).
+Aegis Audit đã tạo Subnet và Chain trên Fuji P-Chain. Mạng chưa có validator do dịch vụ Managed Node báo lỗi 500/502. ThreatAuditLog hiện ghi trên Fuji C-Chain. Phép thử chuyển dự phòng 12–15 ms được đo trên hai node Anvil cục bộ bằng `npm run test:audit`.

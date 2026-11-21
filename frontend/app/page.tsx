@@ -1,4 +1,6 @@
 "use client";
+import { LiveProof } from "./live-proof";
+import { OwnerKillSwitch } from "./owner-kill-switch";
 import { WalletSender } from "./wallet";
 import { useEffect, useState } from "react";
 import {
@@ -199,7 +201,7 @@ export default function Home() {
         </div>
         <span className="network">
           <i className={state ? "online" : ""} />
-          {state ? "Anvil · Fuji fork" : "Đang kết nối"}
+            {state ? `Mô phỏng: Anvil fork từ Fuji #${state.block}` : "Đang kết nối"}
         </span>
       </header>
       <main>
@@ -435,7 +437,7 @@ export default function Home() {
                 <dd>0,005 mUSDC</dd>
               </dl>
               <p>
-                <FlaskConical size={16} /> Giao dịch demo chạy trên Anvil.
+                  <FlaskConical size={16} /> Demo dùng Anvil. <a href="#fuji-proof">Xem biên nhận Fuji</a>
               </p>
             </section>
           </div>
@@ -587,6 +589,8 @@ export default function Home() {
             ))}
           </section>
         )}
+        <LiveProof />
+        {tab === "agent" && <OwnerKillSwitch />}
         <footer>
           <span>AegisAVAX · Team1 Vietnam UniHack 2026</span>
           <a
