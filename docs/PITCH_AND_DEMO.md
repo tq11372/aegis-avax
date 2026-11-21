@@ -4,13 +4,13 @@ Tài liệu chuẩn bị cho **Vòng loại trực tuyến (50đ kỹ thuật)**
 
 ---
 
-## 1. Dàn ý Slide Pitch (22 slide — tiếng Việt, hệ bố cục Slidev & Vercel Geist)
+## 1. Dàn ý Slide Pitch (22 slide — tiếng Việt, bản trình chiếu 16:9)
 
 > **Link Google Slides công khai (22 trang):** [https://docs.google.com/presentation/d/1GbwWTIyI_WBsYoN1tf5dfELDGwLOYKd3yoCp3-T3uqU/edit?usp=sharing](https://docs.google.com/presentation/d/1GbwWTIyI_WBsYoN1tf5dfELDGwLOYKd3yoCp3-T3uqU/edit?usp=sharing)
 >
 > **Link Video Demo công khai (`02:47`, Full HD 1080p, giọng nam tiếng Việt + phụ đề):** [https://drive.google.com/file/d/1lid3WKFfUcEIXGKZ0pjMfyysYwzzIgvp/view?usp=sharing](https://drive.google.com/file/d/1lid3WKFfUcEIXGKZ0pjMfyysYwzzIgvp/view?usp=sharing)
 >
-> Bộ slide chuẩn hóa theo hệ thống bố cục mã nguồn mở **[Slidev](https://github.com/slidevjs/slidev)** (`cover`, `two-cols`, `fact`, `image-right`, `statement` 3 hàng đối chiếu, `four-step` pipeline) kết hợp ảnh chụp giao diện sản phẩm thiết kế theo **[`shadcn-ui/ui`](https://github.com/shadcn-ui/ui)** và **Vercel Geist Design System**. Toàn bộ 22 trang đồng nhất hệ lưới `16:9` (`13.333 × 7.5 in`), tiêu đề phụ hai thành phần (`NHÓM CHỦ ĐỀ  /  TIÊU ĐỀ PHỤ`), bảng màu tương phản cao (`#241B39`, `#FAF8F3`, `#EDE7FA`, `#613CAA`, `#ADF2D1`) và bộ đếm trang `01 / 22` .. `22 / 22`.
+> Bộ slide 16:9 dùng Roboto, có sơ đồ luồng, ảnh giao diện và liên kết tới biên nhận. [Bản PDF trong repo](AegisAVAX-Pitch.pdf)
 
 ### Slide 01 / 22 — Trang bìa (`TEAM1 VIETNAM UNIHACK 2026`)
 - **Tiêu đề:** `AegisAVAX`
@@ -19,7 +19,7 @@ Tài liệu chuẩn bị cho **Vòng loại trực tuyến (50đ kỹ thuật)**
 
 ### Slide 02 / 22 — Mở đầu Bài toán 1: Bức tranh tổng thể (`BÀI TOÁN  /  HAI ĐIỂM MÙ TRƯỚC KHI KÝ`)
 - **Tiêu đề:** *Hai lý do khiến ví mất tiền trước khi lên chuỗi*
-- **Điểm mù 1 — Người dùng ký mù trên ví (`Blind Signing`):** Ví tiêu chuẩn chỉ hiện chuỗi hex như `0x095ea7b3...ffff`. Nếu không mô phỏng trạng thái thật trước khi ký, người dùng không thấy hợp đồng sắp rút token hay xin quyền chi tiêu vô hạn (`approve(MAX_UINT256)`).
+- **Điểm mù 1 — Người dùng ký mù trên ví (`Blind Signing`):** Khi ví chỉ hiện chuỗi hex như `0x095ea7b3...ffff`, người ký có thể bỏ qua quyền chi tiêu vô hạn (`approve(MAX_UINT256)`).
 - **Điểm mù 2 — AI bị thao túng hóa đơn (`Indirect Prompt Injection & Tampered Invoices`):** Khi AI tự đọc hóa đơn hoặc trang web để thanh toán, dữ liệu bên ngoài có thể cài lệnh ẩn hoặc sửa số tiền. Giao thẳng khóa riêng (`EOA`) cho AI khiến một lần đọc sai cũng làm mất quỹ.
 - **Điểm chốt:** *Cả hai rủi ro đều xảy ra ở bước chuẩn bị lệnh, trước khi blockchain kịp ghi nhận giao dịch.*
 
@@ -61,7 +61,7 @@ Tài liệu chuẩn bị cho **Vòng loại trực tuyến (50đ kỹ thuật)**
 ### Slide 08 / 22 — Sản phẩm Tab 1: Tường lửa giao dịch (`SẢN PHẨM  /  TX FIREWALL`)
 - **Tiêu đề:** *Ví sắp cấp quyền gì?*
 - **Nội dung:** Giao diện giải mã lệnh phê duyệt `approve(MAX_UINT256)` và hiển thị thay đổi dự kiến (`State Diff` + `Decoded Events: Approval Không giới hạn`) trước khi người dùng ký.
-- **Ảnh minh chứng:** Ảnh chụp giao diện mới (chuẩn hóa theo `shadcn/ui` & Vercel Geist) trên Anvil fork từ Fuji, block `61420709`.
+- **Ảnh minh chứng:** Ảnh chụp giao diện mới trên Anvil fork từ Fuji, block `61420709`.
 
 ### Slide 09 / 22 — Chính sách hạn mức của két (`CHÍNH SÁCH  /  HẠN MỨC CHI TIÊU`)
 - **Tiêu đề:** *Chủ két đặt giới hạn chi tiêu*
@@ -113,7 +113,7 @@ Tài liệu chuẩn bị cho **Vòng loại trực tuyến (50đ kỹ thuật)**
 
 ### Slide 19 / 22 — Hướng dẫn giám khảo tự kiểm chứng (`KIỂM CHỨNG  /  HƯỚNG DẪN ĐỐI CHIẾU`)
 - **Tiêu đề:** *Ba kết quả, ba cách đối chiếu*
-  1. **[`Quyết định của bộ quét ↗`](eval-benchmark-500.json):** Mở 500 kết quả tại block `61419926`. So nhãn kỳ vọng với quyết định của API; 4 mẫu sạch bị cảnh báo nhầm.
+  1. **[`Quyết định của bộ quét ↗`](eval-benchmark-500.json):** Mở 500 kết quả tại block `61419926`. So nhãn kỳ vọng với quyết định của API; 4 cảnh báo trái nhãn gốc, trong đó có 2 giao dịch thật sự revert khi mô phỏng.
   2. **[`Tiền đã chuyển trên Fuji ↗`](https://testnet.snowtrace.io/tx/0x4eda603dacb0636bd1845fc9f3357cd1442430c9210b6f4dc8cac65018b361ed):** Mở biên nhận và đọc sự kiện `Transfer` của `mUSDC`. Kiểm người gửi, người nhận và `1.000.000` đơn vị cơ sở (`= 1 mUSDC`).
   3. **[`Quyền đã bị thu hồi ↗`](fuji-live-proof.json):** Đối chiếu giao dịch thu hồi với lệnh chi kế tiếp bị `revert`. Mã `AgentRevoked` được kiểm bằng mô phỏng ở block trước.
 
@@ -139,7 +139,7 @@ Tài liệu chuẩn bị cho **Vòng loại trực tuyến (50đ kỹ thuật)**
 
 ---
 
-## 2. Kịch bản Video Demo đã quay (`02:47` — Full HD 1080p, ~90% thao tác ứng dụng thật)
+## 2. Kịch bản Video Demo đã quay (`02:47` — Full HD 1080p, demo trên Anvil)
 
 > **Video công khai (không cần đăng nhập):** [AegisAVAX_Demo_Video.mp4 (Google Drive)](https://drive.google.com/file/d/1lid3WKFfUcEIXGKZ0pjMfyysYwzzIgvp/view?usp=sharing)
 >
@@ -166,31 +166,31 @@ Tài liệu chuẩn bị cho **Vòng loại trực tuyến (50đ kỹ thuật)**
 ## 3. Bộ 10 câu hỏi Q&A kỹ thuật dự kiến & Gợi ý trả lời
 
 1. **Hỏi: Nếu LLM (`Qwen`) bị ảo giác hoặc sập dịch vụ thì có ký nhầm giao dịch xấu thành `SAFE` không?**
-   - **Trả lời:** Không. Hệ thống có 2 tầng chốt an toàn trước khi gọi hoặc nhận kết quả từ LLM: (1) 5 luật tất định trong `backend/src/risk.ts` có quyền **veto cứng** — nếu dính bất kỳ luật nào là chặn ngay không phụ thuộc LLM; (2) bộ đối chiếu ý định (`intent.ts`) kiểm tra số tiền và địa chỉ rõ ràng độc lập với LLM, và khi model vắng mặt hoặc trả JSON sai định dạng, hệ thống **fail-closed** (`MEDIUM`, `clearance: null`).
+   - **Trả lời:** Luật rủi ro và kiểm tra số tiền, tài sản, người nhận có thể bác lệnh trước Qwen. Khi cần model mà model lỗi, hệ thống trả MEDIUM và không cấp clearance. Hai lượt trên cùng bộ 500 ca ghi nhận 0 bỏ sót theo nhãn nội bộ. Chưa có dữ liệu để ước tính tỷ lệ bỏ sót ngoài bộ thử.
 
 2. **Hỏi: Kẻ tấn công lấy được chữ ký EIP-712 cũ rồi gửi lại (replay attack) hoặc dùng trên mạng khác thì sao?**
-   - **Trả lời:** Không được. `CLEARANCE_TYPEHASH` trong `GuardVault.sol` ràng buộc đầy đủ `vault`, `agent`, `target`, `calldataHash = keccak256(data)`, `value`, `nonce`, `deadline`, cộng thêm `chainId` và `verifyingContract` trong EIP-712 domain. Mỗi lần `execute()`, `grantAgent()`, `revokeAgent()`, hay `pause()` đều tăng `nonce`, vô hiệu hóa toàn bộ chữ ký cũ ngay lập tức.
+   - **Trả lời:** Không được. `CLEARANCE_TYPEHASH` trong `GuardVault.sol` ràng buộc đầy đủ `vault`, `agent`, `target`, `calldataHash = keccak256(data)`, `value`, `nonce`, `deadline`, cộng thêm `chainId` và `verifyingContract` trong EIP-712 domain. Mỗi lần `execute()`, `grantAgent()`, `revokeAgent()`, hay `pause()` thành công đều tăng `nonce`, vô hiệu hóa chữ ký dùng nonce cũ sau khi giao dịch được xác nhận.
 
 3. **Hỏi: Nếu chủ két thu hồi session key cũ và cấp session key mới cho Agent, hạn mức 24 giờ (`dailyCap`) có bị reset để lách luật không?**
    - **Trả lời:** Không. `GuardVault.sol` lưu mảng `Checkpoint[] history` ở cấp két (không theo từng địa chỉ agent) và tính `spentInWindow()` bằng **tìm kiếm nhị phân** trong cửa sổ trượt `(now - 24h, now]`, nên đổi session key vẫn giữ nguyên tổng chi trong 24 giờ gần nhất.
 
 4. **Hỏi: Tại sao lại chọn `x402` + `EIP-3009` thay vì bắt người dùng trả phí API bằng thẻ tín dụng hay đăng ký gói tháng?**
-   - **Trả lời:** Vì AI Agent không có thẻ tín dụng hay tài khoản KYC để mua gói SaaS. Với `x402` (HTTP 402 + `transferWithAuthorization` EIP-3009 trên Avalanche), Agent chỉ cần ký ủy quyền trả đúng `0.005 mUSDC` ngay trong header `PAYMENT-SIGNATURE` cho từng lượt quét, tách biệt hoàn toàn với quỹ của `GuardVault`.
+   - **Trả lời:** Demo cần cho một phần mềm trả phí theo từng yêu cầu bằng ví thử nghiệm. Với `x402` (HTTP 402 + `transferWithAuthorization` EIP-3009 trên Avalanche), Agent chỉ cần ký ủy quyền trả đúng `0.005 mUSDC` ngay trong header `PAYMENT-SIGNATURE` cho từng lượt quét, tách biệt hoàn toàn với quỹ của `GuardVault`.
 
 5. **Hỏi: Tại sao Chrome Extension MV3 không ghi đè `window.ethereum` của Core Wallet hay MetaMask?**
    - **Trả lời:** Ghi đè `window.ethereum` dễ xung đột với chuẩn EIP-6963, CSP của trang web và rủi ro bảo mật khóa ví. Extension của AegisAVAX hoạt động ở chế độ Popup / Floating Shield độc lập, không chạm tới khóa ký của ví, đồng thời so khớp tên miền với blocklist MetaMask có bản dự phòng cục bộ.
 
 6. **Hỏi: Phần tích hợp L1 riêng Aegis Audit hiện đang ở mức nào và nếu RPC L1 chết khi vận hành thì sao?**
-   - Aegis Audit (99321) có một validator tự vận hành. ThreatAuditLog đã ghi lại sự kiện T1 tại block 3 của L1. RPC chạy trên máy dự án. Chuyển dự phòng 12–15 ms được đo trên hai node Anvil cục bộ. Worker kiểm tra chain ID, quyền reporter và ID trùng trước khi ghi.
+   - Aegis Audit (99321) có một validator tự vận hành. ThreatAuditLog đã ghi lại sự kiện T1 tại block 3 của L1. RPC chạy trên máy dự án. Chuyển dự phòng đã được thử trên hai node Anvil cục bộ trước khi phát. Giao dịch đã phát mà chưa rõ kết quả cần được đối chiếu trên mạng đã chọn. Worker kiểm tra chain ID, quyền reporter và ID trùng trước khi ghi.
 
 7. **Hỏi: Tại sao trong `foundry.toml` lại chốt `evm_version = "cancun"` và OpenZeppelin `v5.6.1`?**
-   - **Trả lời:** Để tương thích tuyệt đối với Avalanche Fuji C-Chain — tránh các bản OpenZeppelin mới hơn có thể sinh opcode `CLZ` (Osaka) chưa được Fuji hỗ trợ, đảm bảo cả 7 hợp đồng biên dịch, triển khai và xác minh `exact_match` trơn tru.
+   - **Trả lời:** Đây là cấu hình đã build và triển khai trên Fuji. Có thể đối chiếu runtime bytecode của cả bảy hợp đồng trong README. Đội chưa kiểm thử các tổ hợp compiler và phiên bản thư viện khác.
 
 8. **Hỏi: Khi triển khai trên môi trường thực, độ trễ Anvil fork cho từng yêu cầu có làm trải nghiệm chậm không?**
-   - **Trả lời:** Demo dùng lại node Anvil và mô phỏng tại block được chỉ định. Độ trễ lượt kiểm toán tuần tự có p95 2.098 ms tại block nguồn 61419503. Chưa có SLA production.
+   - **Trả lời:** Demo dùng lại node Anvil và mô phỏng tại block được chỉ định. Ở block 61420566, 9/12 lượt quét khác nhau khi gửi bốn yêu cầu đồng thời thành công. p95 của chín lượt thành công là 5.199 ms và ba lượt nhận HTTP 429. [Log từng yêu cầu](operational-check.json). Chưa có SLA production.
 
 9. **Hỏi: Dự án có phát hành token đầu cơ hay dính ranh giới pháp lý tại Việt Nam không?**
-   - **Trả lời:** Không. AegisAVAX là công cụ phần mềm bảo mật phi lưu ký (`non-custodial`), không giữ hộ tiền của người dùng, không phát hành token đầu cơ hay huy động vốn, và hiện chỉ chạy thử nghiệm trên Testnet bằng token demo `mUSDC`.
+   - **Trả lời:** Bản thi chạy trên testnet với mUSDC. Chỉ chủ két được rút tiền. Điều kiện cấp phép và nghĩa vụ xử lý dữ liệu khi thử với khách hàng cần được đánh giá trước khi thương mại hóa. Nguồn pháp lý ở slide 20–21.
 
 10. **Hỏi: Làm sao Ban Giám Khảo có thể tự kiểm chứng lại toàn bộ hệ thống trên máy của mình?**
-    - **Trả lời:** Toàn bộ 7 địa chỉ hợp đồng verified kèm link Snowtrace & Sourcify nằm ở cuối `README.md`. Chỉ cần `npm ci`, `cd contracts && npm ci && forge build`, chạy `forge test` (`27/27`), `npm test` (`10/10`), `npm run test:audit`, và khởi chạy 3 lệnh (`model:local`, `dev:demo`, `dev:web`) là tái lập được toàn bộ 2 tab giao diện và 500 ca Red-Team Eval đa tầng (`docs/eval-benchmark-500.json`) trên Anvil fork từ Fuji.
+    - **Trả lời:** README ghi phiên bản Node, Foundry, cách cấu hình Anvil và model. Chạy các test hợp đồng và Node trước, sau đó bật demo và thực hiện `npm run eval`. Dùng `npm run check:fuji` để đọc lại biên nhận lịch sử. RPC của L1 riêng hiện chỉ mở trên máy đội.

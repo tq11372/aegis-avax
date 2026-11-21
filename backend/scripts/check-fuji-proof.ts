@@ -7,6 +7,8 @@ import {
   http,
   isAddressEqual,
   erc20Abi,
+  parseAbi,
+  parseEventLogs,
 } from "viem";
 import { fuji, vaultAbi } from "../src/fuji.ts";
 import type { Hex } from "viem";
@@ -36,7 +38,10 @@ const failures: Record<string, string> = {
   recipient: "TargetNotWhitelisted",
   revoked: "AgentRevoked",
 };
+assert.equal(proof.rows.length, 10);
 for (const step of [
+  "faucet",
+  "audit",
   "fee",
   "execute",
   "unsigned",
@@ -110,14 +115,38 @@ for (const point of [proof.before, proof.after]) {
     }),
     BigInt(point.balance),
   );
+  assert.equal(
+    await client.readContract({
+      blockNumber, address: fuji.token, abi: erc20Abi,
+      functionName: "balanceOf", args: [fuji.partner],
+    }),
+    BigInt(point.partnerBalance),
+  );
 }
 assert.equal(
   BigInt(proof.before.balance) - BigInt(proof.after.balance),
   1000000n,
 );
 assert.equal(BigInt(proof.after.nonce) - BigInt(proof.before.nonce), 3n);
-console.log(
-  "Fuji RPC independently verified",
-  proof.rows.length,
-  "receipts, four revert reasons, nonce and vault balances.",
-);
+const ownerEvents = parseAbi([
+  "event AgentRevoked(address indexed agent)",
+  "event AgentGranted(address indexed agent)",
+]);
+const uiReceipts = [
+  { event: "AgentRevoked", hash: "0x58bbe66be17945a793806bad15a85f6fa2be039f054e14c91e6340bca27ec066" },
+  { event: "AgentGranted", hash: "0x8d0f2242af805b2ad385c78f0927c57db9d26ef4ac7c889d09784536681dc6f1" },
+] as const;
+let previousBlock = BigInt(proof.after.block);
+for (const { event, hash } of uiReceipts) {
+  const receipt = await client.getTransactionReceipt({ hash });
+  assert.equal(receipt.status, "success");
+  assert.ok(receipt.to && isAddressEqual(receipt.to, fuji.vault));
+  assert.ok(isAddressEqual(receipt.from, fuji.owner));
+  assert.ok(receipt.blockNumber > previousBlock);
+  const vaultLogs = receipt.logs.filter((log) => isAddressEqual(log.address, fuji.vault));
+  const events = parseEventLogs({ abi: ownerEvents, eventName: event, logs: vaultLogs });
+  assert.equal(events.length, 1);
+  assert.ok(isAddressEqual(events[0].args.agent, proof.agent));
+  previousBlock = receipt.blockNumber;
+}
+console.log("Fuji RPC verified 10 proof receipts, 2 owner UI receipts, four revert reasons, nonce and vault/partner balances.");

@@ -1,7 +1,7 @@
 /**
  * AegisAVAX 500-Case Multi-Tier Adversarial & Clean Evaluation Benchmark.
  *
- * Designed following the orthogonal task x perturbation methodology of:
+ * Design references for this team-authored suite:
  *  - AgentDojo (Debenedetti et al., NeurIPS 2024 Datasets & Benchmarks, arXiv:2406.13352)
  *  - InjecAgent (Zhan et al., ACL 2024, arXiv:2403.02691)
  *  - BIPIA (Yi et al., 2023, arXiv:2312.14197)
@@ -9,7 +9,7 @@
  *  - StruQ (Chen et al., USENIX Security 2025, arXiv:2402.06363) & Spotlighting (Hines et al., 2024, arXiv:2403.14720)
  *
  * Structure (500 cases total across 5 Tiers):
- *  - T1_canonical_clean (100 cases): Canonical Vietnamese mUSDC transfers across 100 log-uniform/linear amounts.
+ *  - T1_canonical_clean (100 cases): Canonical Vietnamese mUSDC transfers with 10 hand-picked amounts and a 90-point linear grid.
  *  - T2_colloquial_clean (80 cases): 76 natural Vietnamese/English colloquial transfers & bounded approvals + 4 fail-closed FP stress cases.
  *  - T3_standard_rules (100 cases): 20 cases per deterministic state-diff rule across all 5 rules.
  *  - T4_boundary_evasion (100 cases): 12 stateless EOA sub-threshold/lookalike cases (demonstrating raw EOA blind spots) + 88 GuardVault boundary-evasion cases.
@@ -128,7 +128,7 @@ for (const amount of core10Amounts) {
     userIntent: intent(amount),
   });
 }
-// 90 additional systematic clean transfers across [0.05 .. 10.00] mUSDC (alias & explicit partner address)
+// 90 additional systematic clean transfers across [0.11 .. 9.90] mUSDC (alias & explicit partner address)
 for (let i = 1; i <= 90; i++) {
   const cents = i * 11; // 0.11 to 9.90 mUSDC
   const amtStr = (cents / 100).toFixed(2).replace(/\.?0+$/, "");
