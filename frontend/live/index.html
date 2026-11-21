@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#291b41" />
+    <meta
+      name="description"
+      content="Mô phỏng lệnh chi của GuardVault và đối chiếu biên nhận trên Avalanche Fuji testnet."
+    />
+    <title>AegisAVAX · Két Fuji</title>
+    <link rel="stylesheet" href="./style.css" />
+    <script type="module" src="./app.js"></script>
+  </head>
+  <body>
+    <header>
+      <div class="wrap top">
+        <a class="brand" href="./"
+          ><span class="shield" aria-hidden="true">A</span>Aegis<span
+            class="purple"
+            >AVAX</span
+          ></a
+        ><a class="source" href="https://github.com/tq11372/aegis-avax"
+          >Mã nguồn</a
+        >
+      </div>
+    </header>
+    <main class="wrap">
+      <div class="intro">
+        <div>
+          <h1>Két giao dịch Fuji</h1>
+          <p>Kiểm tra một lệnh chi bằng trạng thái trên chuỗi trước khi ký.</p>
+        </div>
+        <span class="network">Avalanche Fuji <b>43113</b></span>
+      </div>
+      <div class="layout">
+        <section class="panel simulation">
+          <h2>Mô phỏng lệnh chi</h2>
+          <p class="sub">
+            Nhập số tiền và người nhận. Mỗi lần kiểm tra sẽ đọc lại hợp đồng
+            bằng <code>eth_call</code>.
+          </p>
+          <form id="form">
+            <label for="amount">Số tiền đề xuất</label>
+            <div class="amount">
+              <input
+                id="amount"
+                value="1"
+                inputmode="decimal"
+                required
+                maxlength="75"
+                autocomplete="off"
+              /><span>mUSDC</span>
+            </div>
+            <label for="recipient">Người nhận</label
+            ><select id="recipient">
+              <option value="partner">MockPartner · đối tác của két</option>
+              <option value="flagged">MockDrainer · địa chỉ thử nghiệm</option>
+              <option value="custom">Nhập địa chỉ khác</option>
+            </select>
+            <div id="custom-row" hidden>
+              <label for="custom">Địa chỉ EVM</label
+              ><input
+                id="custom"
+                placeholder="0x…"
+                spellcheck="false"
+                autocomplete="off"
+              />
+            </div>
+            <label for="approved">Số tiền trong lệnh gốc</label>
+            <div class="amount">
+              <input
+                id="approved"
+                value="1"
+                inputmode="decimal"
+                required
+                maxlength="75"
+                autocomplete="off"
+              /><span>mUSDC</span>
+            </div>
+            <button id="check" class="primary">Kiểm tra trên Fuji</button>
+          </form>
+          <div
+            id="result"
+            class="result"
+            role="status"
+            aria-live="polite"
+            hidden
+          ></div>
+          <p class="note">
+            Mô phỏng chỉ đọc. Số tiền gốc do bạn nhập để đối chiếu. Luồng Qwen,
+            chữ ký chủ két và thực thi qua MCP có trong
+            <a href="https://github.com/tq11372/aegis-avax#readme"
+              >bản đầy đủ</a
+            >.
+          </p>
+        </section>
+        <div class="side">
+          <section class="vault">
+            <div class="vault-head">
+              <strong>GuardVault</strong
+              ><span id="sync" role="status">Đang đọc Fuji…</span>
+            </div>
+            <p>Số dư két</p>
+            <div class="balance">
+              <strong id="balance">—</strong> <span>mUSDC</span>
+            </div>
+            <div class="vaultfoot">
+              <a
+                href="https://testnet.snowtrace.io/address/0x4d0DA228a21F02c83ee3aF70E6702a489cD1019F"
+                >0x4d0D…019F</a
+              ><button type="button" id="refresh">Làm mới</button>
+            </div>
+          </section>
+          <section class="panel policy">
+            <h2>Chính sách hiện tại</h2>
+            <dl>
+              <div>
+                <dt>Block nguồn</dt>
+                <dd id="block">—</dd>
+              </div>
+              <div>
+                <dt>Trần mỗi lệnh</dt>
+                <dd id="limit">—</dd>
+              </div>
+              <div>
+                <dt>Đã chi / trần 24 giờ</dt>
+                <dd id="daily">—</dd>
+              </div>
+              <div>
+                <dt>Quyền agent</dt>
+                <dd id="active">—</dd>
+              </div>
+              <div>
+                <dt>Clearance</dt>
+                <dd id="clearance">—</dd>
+              </div>
+            </dl>
+          </section>
+        </div>
+      </div>
+      <section class="panel proof">
+        <div class="proof-head">
+          <div>
+            <h2>Biên nhận phiên MCP</h2>
+            <p class="sub">Kiểm lại hai giao dịch lịch sử qua RPC công khai.</p>
+          </div>
+          <button type="button" id="verify">Đối chiếu biên nhận</button>
+        </div>
+        <div class="proof-links">
+          <a id="fee-link">Phí x402 · 0,005 mUSDC</a
+          ><a id="spend-link">Két chi · 1 mUSDC</a
+          ><a
+            href="https://github.com/tq11372/aegis-avax/blob/main/docs/L1_RECEIPTS.md"
+            >Bằng chứng L1 · 99321</a
+          >
+        </div>
+        <p id="receipt-status" aria-live="polite" role="status"></p>
+      </section>
+      <noscript>Hãy bật JavaScript để đọc dữ liệu trực tiếp từ Fuji.</noscript>
+    </main>
+    <footer class="wrap">
+      <span>AegisAVAX · AI_hihi11</span><span>Team1 Vietnam UniHack 2026</span>
+    </footer>
+  </body>
+</html>

@@ -15,3 +15,4 @@ frontend/.next/
 # Local outputs from the team-authored regression suite
 docs/eval-benchmark-*.json
 docs/eval-replay-*.json
+frontend/dist-live/

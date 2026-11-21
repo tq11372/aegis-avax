@@ -34,8 +34,27 @@ jobs:
       - run: npm test
       - run: npm run check:l1
       - run: npm run build -w frontend
+      - run: npm run build:live -w frontend
       - uses: foundry-rs/foundry-toolchain@v1
       - run: npm ci && forge build
         working-directory: contracts
       - run: npm run test:audit
       - run: npm run test:fork
+      - uses: actions/upload-pages-artifact@v4
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        with:
+          path: frontend/dist-live
+  publish:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [contracts, node]
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    concurrency: github-pages
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

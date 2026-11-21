@@ -1,5 +1,7 @@
 # AegisAVAX
 
+**[Mở Live app trên Avalanche Fuji](https://tq11372.github.io/aegis-avax/)** · Giám khảo có thể xem số dư và hạn mức của két, thử một lệnh chi và đối chiếu hai biên nhận MCP mà không cần ví. Đổi người nhận sang MockDrainer để xem lỗi do hợp đồng trả về. Bản web dùng RPC chỉ đọc. Luồng Qwen, ký và thực thi qua MCP nằm trong bản chạy đầy đủ bên dưới.
+
 [![CI](https://github.com/tq11372/aegis-avax/actions/workflows/ci.yml/badge.svg)](https://github.com/tq11372/aegis-avax/actions/workflows/ci.yml)
 
 [🎬 Video Demo (2:34)](https://drive.google.com/file/d/1lid3WKFfUcEIXGKZ0pjMfyysYwzzIgvp/view?usp=sharing) · [📑 Pitch Slides (22 trang)](https://docs.google.com/presentation/d/1GbwWTIyI_WBsYoN1tf5dfELDGwLOYKd3yoCp3-T3uqU/edit?usp=sharing) · [Bản PDF trong repo](docs/AegisAVAX-Pitch.pdf) · [🔗 GuardVault trên Snowtrace](https://testnet.snowtrace.io/address/0x4d0DA228a21F02c83ee3aF70E6702a489cD1019F) · [🔴 12 Biên nhận Live Proof Fuji](#live-proof-on-fuji) · [⛓️ Own L1 Aegis Audit (99321)](#aegis-audit-aegis-chain-id-99321) · [Hai biên nhận MCP trên Fuji](#mcp-fuji)
