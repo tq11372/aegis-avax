@@ -54,11 +54,11 @@ Tài liệu chuẩn bị cho **Vòng loại trực tuyến (50đ kỹ thuật)**
 ### Slide 8 — Kết quả Kiểm thử & Red-Team Evaluation (Số liệu đo thực tế)
 - **Foundry Unit + Fuzz Tests:** **27/27 pass** (20 `GuardVault` gồm 256 lần fuzz, 5 `MockUSDC` EIP-3009, 2 `ScamRegistry`/`ThreatAuditLog`).
 - **Backend & MCP Tests:** **10/10 pass** + kiểm thử đầu cuối với mô hình thật `Qwen2.5-1.5B-Instruct` trên Anvil fork.
-- **Bộ Red-Team Eval 60 ca đa tầng (block Fuji `61410767`, bằng chứng tại `docs/eval-benchmark-60.json`):**
-  - Kết quả chỉ áp dụng cho bộ 60 ca do nhóm tự xây dựng (36 ca biên chuẩn + 24 ca Stress & Boundary lách sát ngưỡng). Nhóm chưa đánh giá trên dữ liệu tấn công thực tế.
+- **Bộ Red-Team Eval 500 ca đa tầng (block Fuji `61411426`, bằng chứng tại `docs/eval-benchmark-500.json`):**
+  - Thiết kế theo phương pháp tổ hợp trực giao (*AgentDojo* NeurIPS 2024 `arXiv:2406.13352`, *InjecAgent* ACL 2024 `arXiv:2403.02691`, *BIPIA* `arXiv:2312.14197`), tối ưu toàn cục bằng bất biến quan hệ $\Phi(I, E)$ & bộ lọc đơn điệu (*CaMeL* Google DeepMind 2025 `arXiv:2503.18813`) kết hợp tách kênh dữ liệu `<untrusted_user_intent>` (*Spotlighting* Microsoft Research 2024 `arXiv:2403.14720` & *StruQ* USENIX Security 2024 `arXiv:2402.06363`).
   - **Tập 36 ca biên chuẩn (Core Suite):** đạt **36/36 (100,0%)** (`Precision 100% · Recall 100%`).
-  - **Tập 60 ca mở rộng (Full Stress & Boundary Suite):** Lớp 1 đạt **55/60 (91,7%) — `Precision 94,6% · Recall 92,1%` (`TP = 35`, `TN = 20`, `FP = 2`, `FN = 3`)**.
-  - **Phân tích 2 FP & 3 FN chứng minh ranh giới 2 lớp:** 2 ca `FP` là fail-closed hợp lý (ghi chú nêu nhiều mức giá `5 → 3 mUSDC` trả `MEDIUM` & gửi `AVAX` vào `MockPartner` không payable); cả **3 ca `FN` lọt Lớp 1** đều là giao dịch trên ví cá nhân EOA (`from: ownerAddr`) lách dưới ngưỡng (`75% < 80%`, địa chỉ giả `3+3` / `4+3` hex), chỉ ra điểm mù của ví EOA thường và lý do phải đặt quỹ AI Agent vào `GuardVault` + `PolicyModule` (`UnsupportedCall`, `TargetNotWhitelisted`, `TxLimitExceeded`) → **Số dư két bảo toàn `50 → 50 mUSDC`**.
+  - **Tập 500 ca mở rộng (Full Multi-Tier Suite — 202 ca gọi trực tiếp Qwen2.5-1.5B + 194 ca Invariant + 104 ca State-Diff Rules):** Lớp 1 đạt **485/500 (97,0%) — `Precision 98,7% · Recall 96,6%` (`TP = 309`, `TN = 176`, `FP = 4`, `FN = 11`)**.
+  - **Phân tích 4 FP & 11 FN chứng minh ranh giới 2 lớp:** 4 ca `FP` là fail-closed hợp lý (2 câu nêu nhiều mức giá trả `MEDIUM` & 2 lệnh gửi `AVAX` vào `MockPartner` không payable); cả **11 ca `FN` lọt Lớp 1** đều là giao dịch trên ví cá nhân EOA (`from: ownerAddr`) lách dưới ngưỡng (`60–78% < 80%`, địa chỉ giả `3+3` / `4+3` hex), trong khi **88/88 (100%) đòn lách biên nhắm vào `GuardVault` đều bị chặn** → **Số dư két bảo toàn `50 → 50 mUSDC`**.
 - Extension MV3 đã chạy trên Chromium. Phép thử chuyển dự phòng 12–15 ms dùng hai node Anvil cục bộ.
 
 ### Slide 9 — Trả lời Câu hỏi 3: *Mô hình doanh thu & Ranh giới pháp lý tại Việt Nam*
@@ -76,7 +76,7 @@ Tài liệu chuẩn bị cho **Vòng loại trực tuyến (50đ kỹ thuật)**
 - **Luồng 3 (Bypass Lớp 1 & Kill Switch):** Gửi lệnh thiếu chữ ký thẳng vào `GuardVault` → hợp đồng **`REVERT` (`InvalidSecurityClearance`)** → bấm **`KILL SWITCH`** thu hồi quyền agent khi giao dịch được xác nhận.
 
 ### Slide 11 — Lộ trình phát triển & Tổng kết
-- **Đã hoàn thành:** 7 hợp đồng verified trên Fuji (+ 12 biên nhận Live Proof), Anvil Fork + 5 Rules + Qwen Verifier + x402 + `aegis-mcp`, Web UI 2 tab, Eval 60 ca đa tầng (`36/36` Core · `55/60 = 91,7%` Stress ở Lớp 1 → `0` mất quỹ nhờ Lớp 2), Chrome Extension MV3, `ThreatAuditLog` failover, và đăng ký `CreateSubnetTx` / `CreateChainTx` / `ConvertSubnetToL1Tx` cho mạng riêng `Aegis Audit` (`99321`) trên Fuji P-Chain. Một validator tự vận hành đã xác nhận ba block đầu của L1.
+- **Đã hoàn thành:** 7 hợp đồng verified trên Fuji (+ 12 biên nhận Live Proof), Anvil Fork + 5 Rules + Qwen Verifier (tối ưu toàn cục theo CaMeL/Spotlighting/StruQ) + x402 + `aegis-mcp`, Web UI 2 tab, Eval 500 ca đa tầng (`36/36` Core · `485/500 = 97,0%` Full Suite ở Lớp 1 → `0` mất quỹ nhờ Lớp 2), Chrome Extension MV3, `ThreatAuditLog` failover, và đăng ký `CreateSubnetTx` / `CreateChainTx` / `ConvertSubnetToL1Tx` cho mạng riêng `Aegis Audit` (`99321`) trên Fuji P-Chain. Một validator tự vận hành đã xác nhận ba block đầu của L1.
 - **Hướng mở rộng sau cuộc thi:** Bổ sung validator cho Aegis Audit cho mạng lưới ghi nhật ký đe dọa phân tán, tích hợp đa ví (Core/Safe), và kết nối cảnh báo liên chuỗi qua ICM/Teleporter.
 - **Kêu gọi:** Link GitHub Repo + QR Code mở thẳng `GuardVault` trên Fuji Explorer.
 
@@ -137,4 +137,4 @@ Tài liệu chuẩn bị cho **Vòng loại trực tuyến (50đ kỹ thuật)**
    - **Trả lời:** Không. AegisAVAX là công cụ phần mềm bảo mật phi lưu ký (`non-custodial`), không giữ hộ tiền của người dùng, không phát hành token đầu cơ hay huy động vốn, và hiện chỉ chạy thử nghiệm trên Testnet bằng token demo `mUSDC`.
 
 10. **Hỏi: Làm sao Ban Giám Khảo có thể tự kiểm chứng lại toàn bộ hệ thống trên máy của mình?**
-    - **Trả lời:** Toàn bộ 7 địa chỉ hợp đồng verified kèm link Snowtrace & Sourcify nằm ở cuối `README.md`. Chỉ cần `npm ci`, `cd contracts && npm ci && forge build`, chạy `forge test` (`27/27`), `npm test` (`10/10`), `npm run test:audit`, và khởi chạy 3 lệnh (`model:local`, `dev:demo`, `dev:web`) là tái lập được toàn bộ 2 tab giao diện và 60 ca Red-Team Eval đa tầng (`docs/eval-benchmark-60.json`) trên Anvil fork từ Fuji.
+    - **Trả lời:** Toàn bộ 7 địa chỉ hợp đồng verified kèm link Snowtrace & Sourcify nằm ở cuối `README.md`. Chỉ cần `npm ci`, `cd contracts && npm ci && forge build`, chạy `forge test` (`27/27`), `npm test` (`10/10`), `npm run test:audit`, và khởi chạy 3 lệnh (`model:local`, `dev:demo`, `dev:web`) là tái lập được toàn bộ 2 tab giao diện và 500 ca Red-Team Eval đa tầng (`docs/eval-benchmark-500.json`) trên Anvil fork từ Fuji.

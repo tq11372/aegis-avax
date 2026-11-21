@@ -22,9 +22,10 @@ export type Reputation = {
   flagged: boolean;
   verified: boolean | null;
 };
-const verifiedCache = new Map<string, number>();
+const verifiedCache = new Map<string, { value: boolean; expires: number }>();
 async function verified(address: Address) {
-  if ((verifiedCache.get(address) ?? 0) > Date.now()) return true;
+  const cached = verifiedCache.get(address);
+  if (cached && cached.expires > Date.now()) return cached.value;
   const urls = [
     "https://build.avax.network/api/verify/43113/api",
     "https://api.routescan.io/v2/network/testnet/evm/43113/etherscan/api",
@@ -41,7 +42,7 @@ async function verified(address: Address) {
       if (!Array.isArray(body.result) || !body.result[0]) continue;
       answered = true;
       if (body.result[0].SourceCode) {
-        verifiedCache.set(address, Date.now() + 300000);
+        verifiedCache.set(address, { value: true, expires: Date.now() + 300000 });
         return true;
       }
     } catch {
@@ -51,6 +52,7 @@ async function verified(address: Address) {
   // Fail closed when both Fuji explorer verification endpoints are unreachable
   // instead of returning 503 for the entire firewall scan.
   if (!answered) return false;
+  verifiedCache.set(address, { value: false, expires: Date.now() + 300000 });
   return false;
 }
 

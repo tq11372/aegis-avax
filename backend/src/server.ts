@@ -3,7 +3,7 @@ import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { bodyLimit } from "hono/body-limit";
 import { fuji, scanSchema, type Scan } from "./fuji.ts";
-import { withFork } from "./fork.ts";
+import { withReadOnlyFork } from "./fork.ts";
 import { simulate } from "./simulation.ts";
 import { confirmedTransfer, reputation, review } from "./risk.ts";
 import { matchesTransferIntent, verifyIntent } from "./intent.ts";
@@ -12,11 +12,13 @@ import { paidPath, paymentGate } from "./payments.ts";
 import { createAuditSink } from "./audit.ts";
 
 export async function analyze(scan: Scan, paid: boolean) {
-  const { sim, rules, targets } = await withFork(async (client, block) => {
-    const sim = await simulate(client, block, scan);
-    const targets = await reputation(client, block, scan, sim);
-    return { sim, rules: review(scan, sim, targets), targets };
-  });
+  const { sim, rules, targets } = await withReadOnlyFork(
+    async (client, block) => {
+      const sim = await simulate(client, block, scan);
+      const targets = await reputation(client, block, scan, sim);
+      return { sim, rules: review(scan, sim, targets), targets };
+    },
+  );
   const verdict = await verifyIntent(scan, sim, rules, targets);
   if (paid && verdict.verifier === "unavailable")
     throw Error("Model unavailable");

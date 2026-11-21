@@ -25,7 +25,7 @@ const child = spawn(
     "--n-gpu-layers",
     "0",
     "--threads",
-    "4",
+    "8",
   ],
   { windowsHide: true, stdio: "inherit" },
 );
