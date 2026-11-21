@@ -163,6 +163,7 @@ await withFork(async (sandbox) => {
         args: [fuji.owner],
       });
     const payeeBefore = await getPayeeBalance();
+    process.env.X402_SESSION_BUDGET_ATOMIC = "10000";
     const mcp = createMcp(),
       consumer = new Client({ name: "smoke", version: "1" });
     const [left, right] = InMemoryTransport.createLinkedPair();
@@ -179,6 +180,10 @@ await withFork(async (sandbox) => {
       name: "simulate_and_verify_tx",
       arguments: {...clean, ownerApproval: {signature, validUntil: String(validUntil)}},
     });
+    const overBudget = await consumer.callTool({name: "simulate_and_verify_tx",
+      arguments: {...clean, ownerApproval: {signature, validUntil: String(validUntil)}}});
+    assert.equal(overBudget.isError, true);
+    assert.match(JSON.stringify(overBudget.content), /Session payment budget exhausted/);
     await consumer.close();
     await mcp.close();
     assert.ok(

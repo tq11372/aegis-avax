@@ -21,6 +21,16 @@ export function paidFetch(key: Hex) {
       { network, asset: fuji.token, maxAmountPerPayment: "5000" },
     ],
   });
+  const configured = process.env.X402_SESSION_BUDGET_ATOMIC ?? "100000";
+  if (!/^(0|[1-9][0-9]{0,77})$/.test(configured))
+    throw Error("Invalid X402_SESSION_BUDGET_ATOMIC");
+  let remaining = BigInt(configured);
+  client.onBeforePaymentCreation(async ({ selectedRequirements }) => {
+    const amount = BigInt(selectedRequirements.amount);
+    if (amount > remaining) return { abort: true, reason: "Session payment budget exhausted" };
+    // Reserve before signing, including when the downstream settlement is uncertain.
+    remaining -= amount;
+  });
   client.registerPolicy((version, offers) =>
     offers.filter(
       (o) =>
@@ -39,6 +49,8 @@ export function paidFetch(key: Hex) {
 
 export function createMcp() {
   const server = new McpServer({ name: "aegis-mcp", version: "0.1.0" });
+  const payerKey = process.env.X402_PAYER_PRIVATE_KEY as Hex | undefined;
+  const pay = payerKey ? paidFetch(payerKey) : undefined;
   server.registerTool(
     "simulate_and_verify_tx",
     {
@@ -47,8 +59,7 @@ export function createMcp() {
       inputSchema: scanFields,
     },
     async (input) => {
-      const key = process.env.X402_PAYER_PRIVATE_KEY as Hex | undefined;
-      if (!key)
+      if (!pay)
         return {
           isError: true,
           content: [
@@ -59,7 +70,7 @@ export function createMcp() {
         "/api/v1/agent/verify-tx",
         process.env.AEGIS_API_URL || "http://127.0.0.1:4021",
       );
-      const res = await paidFetch(key)(endpoint.toString(), {
+      const res = await pay(endpoint.toString(), {
         method: "POST",
         redirect: "error",
         headers: { "content-type": "application/json" },

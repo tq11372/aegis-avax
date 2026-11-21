@@ -3,7 +3,13 @@ import { execFile, spawn } from "node:child_process";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
 import { createInterface } from "node:readline";
-import { readFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { DatabaseSync } from "node:sqlite";
+import { createServer } from "node:http";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { once } from "node:events";
+import { setTimeout as delay } from "node:timers/promises";
 import {
   createPublicClient,
   createTestClient,
@@ -113,6 +119,160 @@ async function withNetwork(
     child.kill();
   }
 }
+// Interrupt a real worker on either side of RPC acceptance, then recover its
+// migrated outbox in a second process against the same two isolated chains.
+async function checkRestart(
+  primary: { id: number; url: string; contract: Address },
+  secondary: typeof primary,
+  accepted: boolean,
+) {
+  const directory = await mkdtemp(join(tmpdir(), "aegis-audit-"));
+  const path = join(directory, "outbox.sqlite");
+  const db = new DatabaseSync(path);
+  const reader = createPublicClient({ transport: http(primary.url) });
+  const item = {
+    id: keccak256(stringToHex("restart-" + accepted)),
+    hash: keccak256(stringToHex("sample")),
+    level: 1,
+  };
+  const scope = JSON.stringify([
+    account.address,
+    [primary.id, getAddress(primary.contract)],
+    [secondary.id, getAddress(secondary.contract)],
+  ]);
+  const before = await reader.getTransactionCount({ address: account.address });
+  let intercepted = false;
+  const proxy = createServer(async (req, res) => {
+    try {
+      const parts: Buffer[] = [];
+      for await (const chunk of req) parts.push(chunk);
+      const body = Buffer.concat(parts).toString();
+      const sending = JSON.parse(body).method === "eth_sendRawTransaction";
+      if (!sending || accepted) {
+        const upstream = await fetch(primary.url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body,
+        });
+        const response = await upstream.text();
+        if (!sending) {
+          res.end(response);
+          return;
+        }
+        if (JSON.parse(response).error) {
+          res.end(response);
+          return;
+        }
+      }
+      intercepted = true; // Drop the reply after the bytes have been persisted.
+      res.destroy();
+    } catch {
+      res.destroy();
+    }
+  });
+  let worker: ReturnType<typeof spawn> | undefined;
+  async function stop() {
+    if (worker && worker.exitCode === null && worker.signalCode === null) {
+      const exit = once(worker, "exit");
+      worker.kill();
+      await exit;
+    }
+  }
+  function start(url: string) {
+    worker = spawn(
+      process.execPath,
+      [
+        "--input-type=module",
+        "-e",
+        "import { createAuditSink } from './backend/src/audit.ts'; createAuditSink(process.env); setInterval(() => {}, 60000)",
+      ],
+      {
+        cwd: fileURLToPath(new URL("../../", import.meta.url)),
+        windowsHide: true,
+        stdio: "ignore",
+        env: {
+          ...process.env,
+          AUDIT_REPORTER_PRIVATE_KEY: key,
+          AUDIT_L1_RPC_URL: url,
+          AUDIT_L1_CHAIN_ID: String(primary.id),
+          AUDIT_LOG_CONTRACT_ADDRESS: primary.contract,
+          AUDIT_FALLBACK_RPC_URL: secondary.url,
+          AUDIT_FALLBACK_CONTRACT_ADDRESS: secondary.contract,
+          AUDIT_OUTBOX_PATH: path,
+        },
+      },
+    );
+  }
+  async function until(predicate: () => boolean) {
+    const deadline = Date.now() + 30000;
+    while (!predicate()) {
+      if (worker?.exitCode != null || Date.now() >= deadline)
+        throw Error("Audit worker recovery timed out");
+      await delay(50);
+    }
+  }
+  try {
+    db.exec(
+      "CREATE TABLE outbox(scope TEXT,id TEXT,evidence TEXT,target INTEGER,due INTEGER DEFAULT 0,receipt TEXT,PRIMARY KEY(scope,id))",
+    );
+    db.prepare("INSERT INTO outbox(scope,id,evidence) VALUES(?,?,?)").run(
+      scope,
+      item.id,
+      JSON.stringify(item),
+    );
+    proxy.listen(0, "127.0.0.1");
+    await once(proxy, "listening");
+    const addr = proxy.address();
+    assert.ok(addr && typeof addr !== "string");
+    start("http://127.0.0.1:" + addr.port);
+    await until(() => intercepted);
+    await stop();
+    const row = db.prepare("SELECT signed_tx,target FROM outbox").get()!;
+    assert.equal(row.target, primary.id);
+    const hash = keccak256(row.signed_tx as Hex);
+    assert.equal(
+      await reader.getTransactionCount({ address: account.address }),
+      before + Number(accepted),
+    );
+    // Expire the crashed worker's lease without a two-minute sleep.
+    db.exec("UPDATE outbox SET due=0");
+    start(primary.url);
+    await until(
+      () => !!db.prepare("SELECT receipt FROM outbox").get()?.receipt,
+    );
+    assert.equal(
+      JSON.parse(
+        String(db.prepare("SELECT receipt FROM outbox").get()!.receipt),
+      ).txHash,
+      hash,
+    );
+    assert.equal(
+      (await reader.getTransactionReceipt({ hash })).status,
+      "success",
+    );
+    assert.equal(
+      await reader.getTransactionCount({ address: account.address }),
+      before + 1,
+    );
+    const fallback = createPublicClient({ transport: http(secondary.url) });
+    assert.equal(
+      await fallback.readContract({
+        address: secondary.contract,
+        abi: auditAbi,
+        functionName: "recorded",
+        args: [item.id],
+      }),
+      false,
+    );
+  } finally {
+    await stop();
+    proxy.closeAllConnections();
+    if (proxy.listening)
+      await new Promise<void>((resolve) => proxy.close(() => resolve()));
+    db.close();
+    await rm(directory, { recursive: true, force: true });
+  }
+}
 await withNetwork(252025, async (primary) =>
   withNetwork(43113, async (secondary) => {
     const item = {
@@ -136,7 +296,10 @@ await withNetwork(252025, async (primary) =>
         },
       },
     );
-    assert.equal(JSON.parse(verified.stdout).contract, getAddress(primary.contract));
+    assert.equal(
+      JSON.parse(verified.stdout).contract,
+      getAddress(primary.contract),
+    );
     async function check(
       target: typeof primary,
       txHash: Hex | undefined,
@@ -174,6 +337,8 @@ await withNetwork(252025, async (primary) =>
     assert.equal(fallback.chainId, 43113);
     await check(secondary, fallback.txHash, next.id);
     assert.ok(ms < 5000, "Fallback took " + ms + " ms");
+    await checkRestart(primary, secondary, false);
+    await checkRestart(primary, secondary, true);
     console.log(
       JSON.stringify({
         network: "two isolated Anvil nodes",
@@ -181,6 +346,8 @@ await withNetwork(252025, async (primary) =>
         fallback: fallback.txHash,
         fallbackMs: ms,
         duplicateSuppressed: true,
+        restartBeforeAcceptance: true,
+        restartAfterAcceptance: true,
       }),
     );
   }),

@@ -56,6 +56,8 @@ Tài liệu chuẩn bị cho **Vòng loại trực tuyến (50đ kỹ thuật)**
 - **Backend & MCP Tests:** **10/10 pass** + kiểm thử đầu cuối với mô hình thật `Qwen2.5-1.5B-Instruct` trên Anvil fork.
 - 500 ca do đội xây dựng chỉ đo quyết định của bộ quét. Dùng [kết quả từng ca](eval-benchmark-500.json) cho phiên hiện tại. Core 36 nằm trong tập 500. Đối chứng lịch sử tại block 61411426 đạt 485/500, gồm 4 FP và 11 FN trên EOA. Khi trình bày Lớp 2, mở riêng 4 receipt Fuji bị revert và một chuyển tiền thành công.
 **Block 61419926 · 496/500 (99,2%).** TP 320, TN 176, FP 4, FN 0, lỗi kỹ thuật 0. Điểm này đo quyết định của API web trên bộ mẫu của đội. Cảnh báo MEDIUM cho đích EOA chưa biết cũng được tính là chặn. Chưa đo tỷ lệ cảnh báo nhầm trên người dùng thực.
+- Nếu được hỏi vai trò của Qwen, có tám lượt đối chứng trên cùng mô phỏng. Bộ đối chiếu đã bắt cả bốn lệnh sai số tiền khi tắt Qwen. Bật Qwen cho phép bốn lệnh đúng nhận SAFE. Mẫu này chưa đánh giá được độ chính xác trên hóa đơn của khách hàng. [Dữ liệu ba chế độ](operational-check.json)
+
 
 - Bộ đối chiếu dùng parser, luật và Qwen. T5 trong lượt lịch sử đi qua intent 119 lần và rules 1 lần. Chưa có kết quả đánh giá mù bên ngoài.
 

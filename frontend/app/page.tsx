@@ -74,12 +74,18 @@ const labels = [
   "Địa chỉ gần giống",
   "Chuyển 90% số dư",
 ];
+class DemoRequestError extends Error {
+  constructor(message: string, readonly payment?: string) { super(message); }
+}
 async function api(path: string, options?: RequestInit) {
   const r = await fetch(path, { cache: "no-store", ...options });
   const body = await r
     .json()
     .catch(() => ({ error: "Dịch vụ demo chưa sẵn sàng." }));
-  if (!r.ok) throw Error(body.error ?? "HTTP " + r.status);
+  if (!r.ok) {
+    if (r.status === 429) throw new Error("Bộ mô phỏng đang bận. Chờ một giây rồi thử lại.");
+    throw new DemoRequestError(body.error ?? "HTTP " + r.status, body.payment);
+  }
   return body;
 }
 function payload(s: State, index: number) {
@@ -184,6 +190,10 @@ export default function Home() {
       setState(r.state);
       setLogs((prev) => [r, ...prev].slice(0, 12));
     } catch (e) {
+      if (e instanceof DemoRequestError && e.payment) {
+        const entry = { message: e.message, payment: e.payment };
+        setLogs(prev => [entry, ...prev].slice(0, 12));
+      }
       setError((e as Error).message);
     } finally {
       setBusy("");

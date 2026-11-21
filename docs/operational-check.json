@@ -1,0 +1,377 @@
+{
+  "measuredAt": "2026-11-21T10:16:51.307Z",
+  "model": "qwen2.5-1.5b-instruct",
+  "demoForkBlock": "61420566",
+  "load": [
+    {
+      "label": "one",
+      "requests": 3,
+      "ok": 3,
+      "busy": 0,
+      "p50ServedMs": 1697,
+      "p95ServedMs": 4128,
+      "samples": [
+        {
+          "wave": 0,
+          "client": 0,
+          "status": 200,
+          "ms": 4128,
+          "risk": "SAFE",
+          "verifier": "model"
+        },
+        {
+          "wave": 1,
+          "client": 0,
+          "status": 200,
+          "ms": 1630,
+          "risk": "SAFE",
+          "verifier": "model"
+        },
+        {
+          "wave": 2,
+          "client": 0,
+          "status": 200,
+          "ms": 1697,
+          "risk": "SAFE",
+          "verifier": "model"
+        }
+      ]
+    },
+    {
+      "label": "four-distinct",
+      "requests": 12,
+      "ok": 9,
+      "busy": 3,
+      "p50ServedMs": 3505,
+      "p95ServedMs": 5199,
+      "samples": [
+        {
+          "wave": 0,
+          "client": 0,
+          "status": 200,
+          "ms": 1873,
+          "risk": "SAFE",
+          "verifier": "model"
+        },
+        {
+          "wave": 0,
+          "client": 1,
+          "status": 200,
+          "ms": 3505,
+          "risk": "SAFE",
+          "verifier": "model"
+        },
+        {
+          "wave": 0,
+          "client": 2,
+          "status": 200,
+          "ms": 5087,
+          "risk": "SAFE",
+          "verifier": "model"
+        },
+        {
+          "wave": 0,
+          "client": 3,
+          "status": 429,
+          "ms": 6,
+          "risk": null,
+          "verifier": null
+        },
+        {
+          "wave": 1,
+          "client": 0,
+          "status": 200,
+          "ms": 3272,
+          "risk": "SAFE",
+          "verifier": "model"
+        },
+        {
+          "wave": 1,
+          "client": 1,
+          "status": 200,
+          "ms": 5119,
+          "risk": "SAFE",
+          "verifier": "model"
+        },
+        {
+          "wave": 1,
+          "client": 2,
+          "status": 200,
+          "ms": 1705,
+          "risk": "SAFE",
+          "verifier": "model"
+        },
+        {
+          "wave": 1,
+          "client": 3,
+          "status": 429,
+          "ms": 5,
+          "risk": null,
+          "verifier": null
+        },
+        {
+          "wave": 2,
+          "client": 0,
+          "status": 200,
+          "ms": 5199,
+          "risk": "SAFE",
+          "verifier": "model"
+        },
+        {
+          "wave": 2,
+          "client": 1,
+          "status": 200,
+          "ms": 1744,
+          "risk": "SAFE",
+          "verifier": "model"
+        },
+        {
+          "wave": 2,
+          "client": 2,
+          "status": 200,
+          "ms": 3537,
+          "risk": "SAFE",
+          "verifier": "model"
+        },
+        {
+          "wave": 2,
+          "client": 3,
+          "status": 429,
+          "ms": 7,
+          "risk": null,
+          "verifier": null
+        }
+      ]
+    },
+    {
+      "label": "four-identical",
+      "requests": 12,
+      "ok": 12,
+      "busy": 0,
+      "p50ServedMs": 1682,
+      "p95ServedMs": 1878,
+      "samples": [
+        {
+          "wave": 0,
+          "client": 0,
+          "status": 200,
+          "ms": 1878,
+          "risk": "SAFE",
+          "verifier": "model"
+        },
+        {
+          "wave": 0,
+          "client": 1,
+          "status": 200,
+          "ms": 1878,
+          "risk": "SAFE",
+          "verifier": "model"
+        },
+        {
+          "wave": 0,
+          "client": 2,
+          "status": 200,
+          "ms": 1877,
+          "risk": "SAFE",
+          "verifier": "model"
+        },
+        {
+          "wave": 0,
+          "client": 3,
+          "status": 200,
+          "ms": 1878,
+          "risk": "SAFE",
+          "verifier": "model"
+        },
+        {
+          "wave": 1,
+          "client": 0,
+          "status": 200,
+          "ms": 1670,
+          "risk": "SAFE",
+          "verifier": "model"
+        },
+        {
+          "wave": 1,
+          "client": 1,
+          "status": 200,
+          "ms": 1671,
+          "risk": "SAFE",
+          "verifier": "model"
+        },
+        {
+          "wave": 1,
+          "client": 2,
+          "status": 200,
+          "ms": 1670,
+          "risk": "SAFE",
+          "verifier": "model"
+        },
+        {
+          "wave": 1,
+          "client": 3,
+          "status": 200,
+          "ms": 1670,
+          "risk": "SAFE",
+          "verifier": "model"
+        },
+        {
+          "wave": 2,
+          "client": 0,
+          "status": 200,
+          "ms": 1682,
+          "risk": "SAFE",
+          "verifier": "model"
+        },
+        {
+          "wave": 2,
+          "client": 1,
+          "status": 200,
+          "ms": 1682,
+          "risk": "SAFE",
+          "verifier": "model"
+        },
+        {
+          "wave": 2,
+          "client": 2,
+          "status": 200,
+          "ms": 1682,
+          "risk": "SAFE",
+          "verifier": "model"
+        },
+        {
+          "wave": 2,
+          "client": 3,
+          "status": 200,
+          "ms": 1682,
+          "risk": "SAFE",
+          "verifier": "model"
+        }
+      ]
+    }
+  ],
+  "comparison": {
+    "block": "61420617",
+    "cases": [
+      {
+        "amount": 1,
+        "requested": 1,
+        "expectedBlock": false,
+        "rulesOnlyBlock": false,
+        "offline": {
+          "verifier": "unavailable",
+          "risk": "MEDIUM"
+        },
+        "full": {
+          "verifier": "model",
+          "risk": "SAFE"
+        }
+      },
+      {
+        "amount": 1,
+        "requested": 2,
+        "expectedBlock": true,
+        "rulesOnlyBlock": false,
+        "offline": {
+          "verifier": "intent",
+          "risk": "CRITICAL"
+        },
+        "full": {
+          "verifier": "intent",
+          "risk": "CRITICAL"
+        }
+      },
+      {
+        "amount": 2,
+        "requested": 2,
+        "expectedBlock": false,
+        "rulesOnlyBlock": false,
+        "offline": {
+          "verifier": "unavailable",
+          "risk": "MEDIUM"
+        },
+        "full": {
+          "verifier": "model",
+          "risk": "SAFE"
+        }
+      },
+      {
+        "amount": 2,
+        "requested": 3,
+        "expectedBlock": true,
+        "rulesOnlyBlock": false,
+        "offline": {
+          "verifier": "intent",
+          "risk": "CRITICAL"
+        },
+        "full": {
+          "verifier": "intent",
+          "risk": "CRITICAL"
+        }
+      },
+      {
+        "amount": 3,
+        "requested": 3,
+        "expectedBlock": false,
+        "rulesOnlyBlock": false,
+        "offline": {
+          "verifier": "unavailable",
+          "risk": "MEDIUM"
+        },
+        "full": {
+          "verifier": "model",
+          "risk": "SAFE"
+        }
+      },
+      {
+        "amount": 3,
+        "requested": 4,
+        "expectedBlock": true,
+        "rulesOnlyBlock": false,
+        "offline": {
+          "verifier": "intent",
+          "risk": "CRITICAL"
+        },
+        "full": {
+          "verifier": "intent",
+          "risk": "CRITICAL"
+        }
+      },
+      {
+        "amount": 4,
+        "requested": 4,
+        "expectedBlock": false,
+        "rulesOnlyBlock": false,
+        "offline": {
+          "verifier": "unavailable",
+          "risk": "MEDIUM"
+        },
+        "full": {
+          "verifier": "model",
+          "risk": "SAFE"
+        }
+      },
+      {
+        "amount": 4,
+        "requested": 5,
+        "expectedBlock": true,
+        "rulesOnlyBlock": false,
+        "offline": {
+          "verifier": "intent",
+          "risk": "CRITICAL"
+        },
+        "full": {
+          "verifier": "intent",
+          "risk": "CRITICAL"
+        }
+      }
+    ]
+  },
+  "cost": {
+    "chainId": 43113,
+    "hash": "0xd3b2f2fba87ae13388ab196e7cf9a83b1ae9085fce2acc9cf3ad9acf52e6592b",
+    "gasUsed": "82778",
+    "gasPriceWei": "160",
+    "relayerGasWei": "13244480"
+  }
+}

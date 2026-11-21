@@ -65,17 +65,13 @@ export async function withFork<T>(
 export async function withReadOnlyFork<T>(
   work: (client: ReturnType<typeof connect>, block: bigint) => Promise<T>,
 ) {
-  try {
-    const host = new URL(rpc).hostname;
-    if (host === "127.0.0.1" || host === "localhost") {
-      const local = connect(rpc);
-      if ((await local.getChainId()) === 43113) {
-        const head = await local.getBlock();
-        return await work(local, head.number);
-      }
-    }
-  } catch {
-    /* Fall back to spawning an isolated Anvil fork process. */
+  const host = new URL(rpc).hostname;
+  if (host === "127.0.0.1" || host === "localhost") {
+    const local = connect(rpc);
+    const head = await (async () => {
+      if ((await local.getChainId()) === 43113) return local.getBlock();
+    })().catch(() => undefined);
+    if (head) return work(local, head.number);
   }
   return withFork(work);
 }

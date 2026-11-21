@@ -24,6 +24,7 @@ await withFork(async (chain, block) => {
   const { keys, agent, vault, policy, local, write } = await seed(chain);
   const backend = "http://127.0.0.1:4021";
   process.env.X402_PAY_TO = fuji.owner;
+  const pay = paidFetch(keys.agent);
   const child = spawn(
     process.execPath,
     [fileURLToPath(new URL("../src/server.ts", import.meta.url))],
@@ -136,6 +137,7 @@ await withFork(async (chain, block) => {
       return c.json({ error: "Missing local demo header" }, 403);
     if (busy) return c.json({ error: "Một thao tác đang xử lý" }, 409);
     busy = true;
+    let payment: string | undefined;
     try {
       const { action, txLimit, dailyCap, partnerAllowed } = await c.req.json();
       const data = encodeFunctionData({
@@ -143,7 +145,7 @@ await withFork(async (chain, block) => {
         functionName: "transfer",
         args: [fuji.partner, 3000000n],
       });
-      let hash: Hex | undefined, payment: string | undefined, message: string;
+      let hash: Hex | undefined, message: string;
       if (action === "pay") {
         // Fixed owner instruction, independent of any invoice or agent-supplied text.
         const head = await chain.getBlock();
@@ -152,7 +154,7 @@ await withFork(async (chain, block) => {
         const signature = await privateKeyToAccount(keys.relayer).signTypedData(
           ownerPayment(vault, agent.address, fuji.token, fuji.partner, 3000000n, nonce, validUntil));
 
-        const res = await paidFetch(keys.agent)(
+        const res = await pay(
           backend + "/api/v1/agent/verify-tx",
           {
             method: "POST",
@@ -168,17 +170,23 @@ await withFork(async (chain, block) => {
           },
         );
         const body = await res.json();
+        const settled = res.headers.get("PAYMENT-RESPONSE");
+        if (settled) payment = decodePaymentResponseHeader(settled).transaction;
         if (!res.ok || !body.clearance)
           return c.json(
             {
               error:
                 body.error ?? body.explanationVi ?? "Clearance unavailable",
+              payment,
             },
             422,
           );
-        payment = decodePaymentResponseHeader(
-          res.headers.get("PAYMENT-RESPONSE")!,
-        ).transaction;
+        const current = await chain.getBlock();
+        const currentNonce = await chain.readContract({
+          address: vault, abi: vaultAbi, functionName: "nonce", blockNumber: current.number,
+        });
+        if (currentNonce !== BigInt(body.clearance.nonce) || current.timestamp > BigInt(body.clearance.deadline))
+          return c.json({ error: "Clearance đã hết hạn hoặc nonce đã đổi. Kiểm tra biên nhận phí trước khi yêu cầu ký lại.", payment }, 409);
         hash = await write(
           vault,
           vaultAbi,
@@ -298,9 +306,12 @@ await withFork(async (chain, block) => {
         message = "Đã cập nhật quyền người nhận.";
       } else return c.json({ error: "Unknown action" }, 400);
       return c.json({ message, hash, payment, state: await state() });
-    } catch {
+    } catch (error) {
+      if (error instanceof Error && error.message.includes("Session payment budget exhausted"))
+        return c.json({ error: "Đã hết ngân sách phí x402 của phiên." }, 409);
       return c.json(
         {
+          payment,
           error:
             "Thao tác chưa hoàn tất. Kiểm tra quyền agent, hạn mức và dịch vụ Qwen.",
         },

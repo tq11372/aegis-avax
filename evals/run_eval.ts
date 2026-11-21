@@ -1245,7 +1245,7 @@ if (
   errors ||
   wrongRule ||
   rows.length !== 500 ||
-  tierTable.some((tier, i) => tier.passed < [100, 76, 100, 89, 120][i]) ||
+  tierTable.some((tier, i) => tier.passed < [100, 76, 100, 100, 120][i]) ||
   coreSummary.fp ||
   coreSummary.fn ||
   start.vault !== end.vault ||

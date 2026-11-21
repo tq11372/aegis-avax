@@ -198,7 +198,7 @@ export function review(scan: Scan, sim: Simulation, targets: Reputation[]) {
       "ABNORMAL_SLIPPAGE_OR_DANGEROUS_CALL",
       sim.reverted
         ? "Lệnh mô phỏng đã revert."
-        : "Calldata yêu cầu thao tác nguy hiểm hoặc không phải chuyển/phê duyệt chuẩn.",
+        : "Loại lệnh nằm ngoài phạm vi chuyển hoặc phê duyệt mà bộ quét hỗ trợ. Cần kiểm tra thủ công trước khi ký.",
     );
   return {
     triggeredRules: [...reasons.keys()],
