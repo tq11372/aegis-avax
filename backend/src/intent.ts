@@ -14,7 +14,7 @@ const verdict = z
 export type Verdict = z.infer<typeof verdict>;
 
 const INJECTION_RE =
-  /(ignore\s+(?:all\s+|previous|above|prior)\s+instructions?|disregard\s+(?:all\s+|previous|above)|system\s+override|override\s+(?:system|policy|rules)|"riskLevel"\s*:|"intentMatch"\s*:|output\s+json|respond\s+strictly\s+with|pretend\s+(?:this|it)\s+is\s+safe|always\s+return\s+safe|bỏ\s+qua\s+(?:mọi\s+|tất\s+cả\s+)?(?:hướng\s+dẫn|chỉ\s+thị|quy\s+tắc)|ghi\s+chú\s+(?:kiểm\s+toán|hệ\s+thống)|xác\s+nhận\s+từ\s+(?:policymodule|guardvault|hệ\s+thống)|thông\s+tin\s+xác\s+thực\s*:|hệ\s+thống\s+kế\s+toán\s+xác\s+nhận|(?:khớp|trùng\s+khớp)\s+(?:100%|hoàn\s+toàn|tuyệt\s+đối)\s+với\s+(?:yêu\s+cầu|gói)|đã\s+cập\s+nhật\s+quyết\s+định\s+thành)/iu;
+  /(ignore\s+(?:all\s+|previous|above|prior)\s+instructions?|disregard\s+(?:all\s+|previous|above)|system\s+override|override\s+(?:system|policy|rules)|"riskLevel"\s*:|"intentMatch"\s*:|output\s+json|respond\s+strictly\s+with|pretend\s+(?:this|it)\s+is\s+safe|always\s+return\s+safe|bỏ\s+qua\s+(?:mọi\s+|tất\s+cả\s+)?(?:hướng\s+dẫn|chỉ\s+thị|quy\s+tắc))/iu;
 
 const APPROVE_INTENT_RE =
   /(cấp\s+quyền|phê\s+duyệt|ủy\s+quyền|\bapprove\b|\ballowance\b)/iu;
@@ -313,14 +313,18 @@ export async function verifyIntent(
       const sameAssetAmounts = req.amounts.filter(
         (a) => a.asset === observed.asset,
       );
-      for (const item of sameAssetAmounts) {
-        let parsed: bigint | undefined;
-        try {
-          parsed = parseUnits(item.raw, observed.decimals);
-        } catch {
-          parsed = undefined;
+      if (sameAssetAmounts.length > 0) {
+        const parsedSet = new Set<bigint>();
+        let parseFailed = false;
+        for (const item of sameAssetAmounts) {
+          try {
+            parsedSet.add(parseUnits(item.raw, observed.decimals));
+          } catch {
+            parseFailed = true;
+          }
         }
-        if (parsed === undefined || parsed !== BigInt(observed.amount)) {
+        const targetAmt = BigInt(observed.amount);
+        if (parseFailed || !parsedSet.has(targetAmt)) {
           return {
             verifier: "intent",
             riskLevel: "CRITICAL",
@@ -331,6 +335,15 @@ export async function verifyIntent(
               " " +
               observed.asset +
               ") khác với số tiền người dùng yêu cầu.",
+          };
+        }
+        if (parsedSet.size > 1) {
+          return {
+            verifier: "intent",
+            riskLevel: "MEDIUM",
+            intentMatch: false,
+            explanationVi:
+              "Yêu cầu nêu nhiều mức số tiền khác nhau, hệ thống từ chối tự động duyệt để tránh nhầm lẫn.",
           };
         }
       }

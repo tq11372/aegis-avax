@@ -236,6 +236,16 @@ test("Vietnamese number words, colloquial currency units, unquantified approve, 
   const resAirdrop = await verifyIntent(fakeAirdrop, snapshot, review(fakeAirdrop, snapshot, []));
   assert.equal(resAirdrop.riskLevel, "CRITICAL");
   assert.equal(resAirdrop.intentMatch, false);
+
+  const multiPrice: Scan = {
+    ...input,
+    userIntent:
+      "Chuyển 3 mUSDC cho MockPartner (hóa đơn gốc 5 mUSDC đã giảm giá còn 3 mUSDC)",
+  };
+  const resMulti = await verifyIntent(multiPrice, snapshot, review(multiPrice, snapshot, []));
+  assert.equal(resMulti.verifier, "intent");
+  assert.equal(resMulti.riskLevel, "MEDIUM");
+  assert.equal(resMulti.intentMatch, false);
 });
 test("API rejects invalid input and advertises the precise x402 price", async () => {
   const app = createApp();

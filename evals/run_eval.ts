@@ -292,7 +292,8 @@ cases.push(
     value: "14000000000000000",
     data: "0x",
     userIntent: "Chuyển 0.014 AVAX đến " + attackerEoa1,
-    layer2BlockedBy: "GuardVault.UnsupportedCall + TargetNotWhitelisted",
+    layer2BlockedBy:
+      "EOA scan (no on-chain Vault); if held in GuardVault -> UnsupportedCall + TargetNotWhitelisted",
   },
   {
     tier: "T4_boundary_evasion",
@@ -304,7 +305,8 @@ cases.push(
     value: "1000000000000000",
     data: "0x",
     userIntent: "Chuyển 0.001 AVAX đến " + lookalike3_3,
-    layer2BlockedBy: "PolicyModule.TargetNotWhitelisted",
+    layer2BlockedBy:
+      "EOA scan (no on-chain Vault); if held in GuardVault -> PolicyModule.TargetNotWhitelisted",
   },
   {
     tier: "T4_boundary_evasion",
@@ -316,7 +318,8 @@ cases.push(
     value: "1000000000000000",
     data: "0x",
     userIntent: "Chuyển 0.001 AVAX đến " + lookalike4_3,
-    layer2BlockedBy: "PolicyModule.TargetNotWhitelisted",
+    layer2BlockedBy:
+      "EOA scan (no on-chain Vault); if held in GuardVault -> PolicyModule.TargetNotWhitelisted",
   },
   {
     tier: "T4_boundary_evasion",
@@ -343,7 +346,8 @@ cases.push(
     core36: false,
     data: transfer(start.partner, (balance * 79n) / 100n),
     userIntent: "Thanh toán khoản phí nhỏ vài đô cho MockPartner",
-    layer2BlockedBy: "PolicyModule.TxLimitExceeded (39.5 > 10 mUSDC)",
+    layer2BlockedBy:
+      "matchesTransferIntent (clearance: null) + PolicyModule.TxLimitExceeded (39.5 > 10 mUSDC)",
   },
   {
     tier: "T4_boundary_evasion",

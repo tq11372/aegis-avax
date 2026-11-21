@@ -54,11 +54,11 @@ Tài liệu chuẩn bị cho **Vòng loại trực tuyến (50đ kỹ thuật)**
 ### Slide 8 — Kết quả Kiểm thử & Red-Team Evaluation (Số liệu đo thực tế)
 - **Foundry Unit + Fuzz Tests:** **27/27 pass** (20 `GuardVault` gồm 256 lần fuzz, 5 `MockUSDC` EIP-3009, 2 `ScamRegistry`/`ThreatAuditLog`).
 - **Backend & MCP Tests:** **10/10 pass** + kiểm thử đầu cuối với mô hình thật `Qwen2.5-1.5B-Instruct` trên Anvil fork.
-- **Bộ Red-Team Eval 60 ca đa tầng (block Fuji `61410111`, bằng chứng tại `docs/eval-benchmark-60.json`):**
+- **Bộ Red-Team Eval 60 ca đa tầng (block Fuji `61410767`, bằng chứng tại `docs/eval-benchmark-60.json`):**
   - Kết quả chỉ áp dụng cho bộ 60 ca do nhóm tự xây dựng (36 ca biên chuẩn + 24 ca Stress & Boundary lách sát ngưỡng). Nhóm chưa đánh giá trên dữ liệu tấn công thực tế.
   - **Tập 36 ca biên chuẩn (Core Suite):** đạt **36/36 (100,0%)** (`Precision 100% · Recall 100%`).
-  - **Tập 60 ca mở rộng (Full Stress & Boundary Suite):** Lớp 1 đạt **54/60 (90,0%) — `Precision 94,4% · Recall 89,5%` (`TP = 34`, `TN = 20`, `FP = 2`, `FN = 4`)**.
-  - **Phân tích 2 FP & 4 FN chứng minh giá trị Lớp 2 On-Chain:** 2 ca `FP` là fail-closed hợp lý (ghi chú có 2 mức giá `5 → 3 mUSDC` & gửi `AVAX` vào `MockPartner` không payable); cả **4 ca `FN` lọt Lớp 1** (lách sát dưới ngưỡng `75–79% < 80%`, địa chỉ giả `3+3` / `4+3` ký tự hex, hoặc ý định mơ hồ `"vài đô"` chuyển `39,5 mUSDC`) **đều bị Lớp 2 `GuardVault` + `PolicyModule` chặn cứng 100%** (`TargetNotWhitelisted`, `UnsupportedCall`, `TxLimitExceeded: 39,5 > 10 mUSDC`) → **Số dư két bảo toàn `50 → 50 mUSDC`**.
+  - **Tập 60 ca mở rộng (Full Stress & Boundary Suite):** Lớp 1 đạt **55/60 (91,7%) — `Precision 94,6% · Recall 92,1%` (`TP = 35`, `TN = 20`, `FP = 2`, `FN = 3`)**.
+  - **Phân tích 2 FP & 3 FN chứng minh ranh giới 2 lớp:** 2 ca `FP` là fail-closed hợp lý (ghi chú nêu nhiều mức giá `5 → 3 mUSDC` trả `MEDIUM` & gửi `AVAX` vào `MockPartner` không payable); cả **3 ca `FN` lọt Lớp 1** đều là giao dịch trên ví cá nhân EOA (`from: ownerAddr`) lách dưới ngưỡng (`75% < 80%`, địa chỉ giả `3+3` / `4+3` hex), chỉ ra điểm mù của ví EOA thường và lý do phải đặt quỹ AI Agent vào `GuardVault` + `PolicyModule` (`UnsupportedCall`, `TargetNotWhitelisted`, `TxLimitExceeded`) → **Số dư két bảo toàn `50 → 50 mUSDC`**.
 - Extension MV3 đã chạy trên Chromium. Phép thử chuyển dự phòng 12–15 ms dùng hai node Anvil cục bộ.
 
 ### Slide 9 — Trả lời Câu hỏi 3: *Mô hình doanh thu & Ranh giới pháp lý tại Việt Nam*
@@ -76,7 +76,7 @@ Tài liệu chuẩn bị cho **Vòng loại trực tuyến (50đ kỹ thuật)**
 - **Luồng 3 (Bypass Lớp 1 & Kill Switch):** Gửi lệnh thiếu chữ ký thẳng vào `GuardVault` → hợp đồng **`REVERT` (`InvalidSecurityClearance`)** → bấm **`KILL SWITCH`** thu hồi quyền agent khi giao dịch được xác nhận.
 
 ### Slide 11 — Lộ trình phát triển & Tổng kết
-- **Đã hoàn thành:** 7 hợp đồng verified trên Fuji (+ 12 biên nhận Live Proof), Anvil Fork + 5 Rules + Qwen Verifier + x402 + `aegis-mcp`, Web UI 2 tab, Eval 60 ca đa tầng (`36/36` Core · `54/60 = 90,0%` Stress ở Lớp 1 → `0` mất quỹ nhờ Lớp 2), Chrome Extension MV3, `ThreatAuditLog` failover, và đăng ký `CreateSubnetTx` / `CreateChainTx` / `ConvertSubnetToL1Tx` cho mạng riêng `Aegis Audit` (`99321`) trên Fuji P-Chain. Một validator tự vận hành đã xác nhận ba block đầu của L1.
+- **Đã hoàn thành:** 7 hợp đồng verified trên Fuji (+ 12 biên nhận Live Proof), Anvil Fork + 5 Rules + Qwen Verifier + x402 + `aegis-mcp`, Web UI 2 tab, Eval 60 ca đa tầng (`36/36` Core · `55/60 = 91,7%` Stress ở Lớp 1 → `0` mất quỹ nhờ Lớp 2), Chrome Extension MV3, `ThreatAuditLog` failover, và đăng ký `CreateSubnetTx` / `CreateChainTx` / `ConvertSubnetToL1Tx` cho mạng riêng `Aegis Audit` (`99321`) trên Fuji P-Chain. Một validator tự vận hành đã xác nhận ba block đầu của L1.
 - **Hướng mở rộng sau cuộc thi:** Bổ sung validator cho Aegis Audit cho mạng lưới ghi nhật ký đe dọa phân tán, tích hợp đa ví (Core/Safe), và kết nối cảnh báo liên chuỗi qua ICM/Teleporter.
 - **Kêu gọi:** Link GitHub Repo + QR Code mở thẳng `GuardVault` trên Fuji Explorer.
 
