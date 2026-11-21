@@ -272,6 +272,10 @@ export async function verifyIntent(
       explanationVi: rules.explanationVi,
     };
 
+  if (targets.some(t => t.verified === "unavailable"))
+    return { verifier: "unavailable", riskLevel: "MEDIUM", intentMatch: false,
+      explanationVi: "Explorer chưa phản hồi. Chưa xác minh được mã nguồn của hợp đồng." };
+
   const req = extractRequestedIntent(scan.userIntent);
   if (req.hasInjection)
     return {
@@ -434,6 +438,15 @@ export async function verifyIntent(
           "Địa chỉ người nhận trong giao dịch mô phỏng khác với địa chỉ người dùng yêu cầu.",
       };
     }
+  }
+
+  if (observed && !isSame(scan.from, fuji.vault) &&
+      !targets.some(t => t.allowed && isSame(t.address, observed.recipient)) &&
+      !scan.knownRecipients.some(address => isSame(address, observed.recipient))) {
+    return {
+      verifier: "intent", riskLevel: "MEDIUM", intentMatch: false,
+      explanationVi: "Ví cá nhân đang gửi đến địa chỉ chưa được xác nhận. Kiểm tra địa chỉ người nhận qua một nguồn độc lập trước khi ký.",
+    };
   }
 
   const endpoint = process.env.LLM_BASE_URL;

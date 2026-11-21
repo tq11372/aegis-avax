@@ -20,7 +20,7 @@ export type Reputation = {
   address: Address;
   allowed: boolean;
   flagged: boolean;
-  verified: boolean | null;
+  verified: boolean | null | "unavailable";
 };
 const verifiedCache = new Map<string, { value: boolean; expires: number }>();
 async function verified(address: Address) {
@@ -51,7 +51,7 @@ async function verified(address: Address) {
   }
   // Fail closed when both Fuji explorer verification endpoints are unreachable
   // instead of returning 503 for the entire firewall scan.
-  if (!answered) return false;
+  if (!answered) return "unavailable" as const;
   verifiedCache.set(address, { value: false, expires: Date.now() + 300000 });
   return false;
 }

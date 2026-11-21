@@ -46,7 +46,7 @@ export function LiveProof() {
       className="panel result"
       aria-labelledby="proof-title"
     >
-      <h2 id="proof-title">Bằng chứng on-chain trên Avalanche Fuji</h2>
+      <h2 id="proof-title">Biên nhận lịch sử trên Avalanche Fuji</h2>
       {proof ? (
         <>
           <p>

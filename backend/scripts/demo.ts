@@ -16,6 +16,8 @@ import { withFork } from "../src/fork.ts";
 import { fuji, vaultAbi } from "../src/fuji.ts";
 import { extractRevertCode } from "../src/clearance.ts";
 import { seed } from "./sandbox.ts";
+import { ownerPayment } from "../src/owner-intent.ts";
+import { privateKeyToAccount } from "viem/accounts";
 import { paidFetch } from "../../mcp-server/src/server.ts";
 
 await withFork(async (chain, block) => {
@@ -31,6 +33,7 @@ await withFork(async (chain, block) => {
       env: {
         ...process.env,
         PORT: "4021",
+        AEGIS_REQUIRE_OWNER_INTENT: "true",
         AUDIT_REPORTER_PRIVATE_KEY: "",
         FUJI_RPC_URL: local,
         GUARD_VAULT_ADDRESS: vault,
@@ -142,6 +145,13 @@ await withFork(async (chain, block) => {
       });
       let hash: Hex | undefined, payment: string | undefined, message: string;
       if (action === "pay") {
+        // Fixed owner instruction, independent of any invoice or agent-supplied text.
+        const head = await chain.getBlock();
+        const validUntil = head.timestamp + 90n;
+        const nonce = await chain.readContract({ address: vault, abi: vaultAbi, functionName: "nonce", blockNumber: head.number });
+        const signature = await privateKeyToAccount(keys.relayer).signTypedData(
+          ownerPayment(vault, agent.address, fuji.token, fuji.partner, 3000000n, nonce, validUntil));
+
         const res = await paidFetch(keys.agent)(
           backend + "/api/v1/agent/verify-tx",
           {
@@ -149,6 +159,7 @@ await withFork(async (chain, block) => {
             headers: { "content-type": "application/json" },
             body: JSON.stringify({
               from: vault,
+              ownerApproval: { signature, validUntil: String(validUntil) },
               to: fuji.token,
               data,
               value: "0",
@@ -183,12 +194,9 @@ await withFork(async (chain, block) => {
         );
         message = "Đã chuyển 3 mUSDC đến MockPartner.";
       } else if (action === "mismatch") {
-        const available = await chain.readContract({
-          address: fuji.token, abi: erc20Abi, functionName: "balanceOf", args: [vault],
-        });
-        const proposedAmount = available * 9n / 10n;
+        const proposedAmount = parseUnits("4", 6);
         const proposal = encodeFunctionData({
-          abi: erc20Abi, functionName: "transfer", args: [fuji.flagged, proposedAmount],
+          abi: erc20Abi, functionName: "transfer", args: [fuji.partner, proposedAmount],
         });
         const res = await fetch(backend + "/api/v1/web/verify-tx", {
           method: "POST",
@@ -209,7 +217,7 @@ await withFork(async (chain, block) => {
         )
           throw Error("Unexpected scan result");
         message = "Bạn cho phép 3 mUSDC đến MockPartner. Hóa đơn mẫu đề xuất " +
-          formatUnits(proposedAmount,6) + " mUSDC đến địa chỉ bị gắn cờ. " + report.explanationVi;
+          formatUnits(proposedAmount,6) + " mUSDC đến cùng đối tác. " + report.explanationVi;
       } else if (action === "check") {
         const head = await chain.getBlock();
         try {

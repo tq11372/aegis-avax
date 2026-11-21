@@ -32,3 +32,9 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm test
+      - run: npm run build -w frontend
+      - uses: foundry-rs/foundry-toolchain@v1
+      - run: npm ci && forge build
+        working-directory: contracts
+      - run: npm run test:audit
+      - run: npm run test:fork

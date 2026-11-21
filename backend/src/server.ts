@@ -47,6 +47,8 @@ export function createApp(gate = paymentGate(), analyzeTx = analyze) {
   const app = new Hono();
   const audit = createAuditSink(process.env);
   let running = 0;
+  const webScans = new Map<string, ReturnType<typeof analyze>>();
+
   app.use("*", bodyLimit({ maxSize: 32768 }));
   app.get("/health", (c) => c.json({ chainId: 43113 }));
   app.use(paidPath, async (c, next) => {
@@ -73,11 +75,26 @@ export function createApp(gate = paymentGate(), analyzeTx = analyze) {
           },
           400,
         );
-      if (running >= 3) return c.json({ error: "Simulator busy" }, 429);
-      running++;
+      const key = JSON.stringify(parsed.data);
+      const existing = paid ? undefined : webScans.get(key);
+      if (!existing && running >= 3) {
+        c.header("Retry-After", "1");
+        return c.json({ error: "Simulator busy" }, 429);
+      }
       try {
-        const report = await analyzeTx(parsed.data, paid);
-        if (report.verifier !== "unavailable") audit(parsed.data, report);
+        const run = async () => {
+          running++;
+          try {
+            const result = await analyzeTx(parsed.data, paid);
+            if (result.verifier !== "unavailable") await audit(parsed.data, result);
+            return result;
+          } finally {
+            running--;
+          }
+        };
+        const pending = existing ?? run();
+        if (!paid && !existing) webScans.set(key, pending);
+        const report = await pending;
         return c.json(report);
       } catch (err) {
         if (err instanceof PolicyRejectionError) {
@@ -97,7 +114,7 @@ export function createApp(gate = paymentGate(), analyzeTx = analyze) {
           503,
         );
       } finally {
-        running--;
+        if (!paid && !existing) webScans.delete(key);
       }
     });
   }

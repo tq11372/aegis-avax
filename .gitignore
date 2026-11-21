@@ -9,3 +9,5 @@ contracts/lib/
 frontend/.next/
 *.tsbuildinfo
 .fuji-proof/
+
+.aegis-audit/

@@ -347,14 +347,14 @@ export default function Home() {
                   </button>
                   <button disabled={locked} onClick={() => action("mismatch")}>
                     <ShieldAlert />
-                    Kiểm tra hóa đơn sai người nhận
+                    Kiểm tra hóa đơn sai số tiền
                   </button>
                   <button
                     disabled={locked || !state?.active}
                     onClick={() => action("check")}
                   >
                     <LockKeyhole />
-                    Kiểm tra lệnh thiếu chữ ký
+                    Mô phỏng lệnh thiếu chữ ký
                   </button>
                 </div>
                 <h3>Chính sách chi tiêu</h3>

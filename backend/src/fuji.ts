@@ -32,6 +32,7 @@ export const connect = (url: string) =>
     cacheTime: 0,
   });
 export const vaultAbi = parseAbi([
+  "function owner() view returns (address)",
   "function signer() view returns (address)",
   "function agent() view returns (address)",
   "function nonce() view returns (uint256)",
@@ -84,6 +85,10 @@ export const scanFields = {
     .refine((v) => BigInt(v) < 2n ** 256n)
     .default("0"),
   userIntent: z.string().trim().min(1).max(800),
+  ownerApproval: z.object({
+    validUntil: z.string().regex(/^[0-9]{1,12}$/),
+    signature: z.string().regex(/^0x[0-9a-fA-F]{130}$/).transform(v => v as Hex),
+  }).strict().optional(),
   knownRecipients: z.array(address).max(32).default([]),
   // Optional user expectation, expressed in base units of the output ERC-20.
   minOutput: z

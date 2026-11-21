@@ -1,3 +1,5 @@
+import { ownerPayment } from "../src/owner-intent.ts";
+import { privateKeyToAccount } from "viem/accounts";
 // Run explicitly with npm run test:fork. All writes use a private child Anvil.
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
@@ -82,6 +84,7 @@ await withFork(async (sandbox) => {
       POLICY_MODULE_ADDRESS: policy,
       RELAYER_PRIVATE_KEY: keys.relayer,
       AUDIT_REPORTER_PRIVATE_KEY: "",
+      AEGIS_REQUIRE_OWNER_INTENT: "true",
       X402_FACILITATOR_URL: "",
       AEGIS_SIGNER_PRIVATE_KEY: keys.signer,
       LLM_BASE_URL: realModel
@@ -165,9 +168,16 @@ await withFork(async (sandbox) => {
     const [left, right] = InMemoryTransport.createLinkedPair();
     await mcp.connect(left);
     await consumer.connect(right);
+    const head = await sandbox.getBlock();
+    const nonce = await sandbox.readContract({address: vault, abi: vaultAbi, functionName: "nonce"});
+    const validUntil = head.timestamp + 90n;
+    const signature = await privateKeyToAccount(keys.relayer).signTypedData(
+      ownerPayment(vault, agent.address, fuji.token, fuji.partner, 3_000_000n, nonce, validUntil));
+    const unsigned = await consumer.callTool({name: "simulate_and_verify_tx", arguments: clean});
+    assert.equal(unsigned.isError, true, "Owner authorization required before clearance");
     const result = await consumer.callTool({
       name: "simulate_and_verify_tx",
-      arguments: clean,
+      arguments: {...clean, ownerApproval: {signature, validUntil: String(validUntil)}},
     });
     await consumer.close();
     await mcp.close();

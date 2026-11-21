@@ -1,3 +1,6 @@
+import { DatabaseSync } from "node:sqlite";
+import { mkdirSync } from "node:fs";
+import { dirname, resolve } from "node:path";
 import {
   createPublicClient,
   createWalletClient,
@@ -97,7 +100,8 @@ export function auditSettings(env: NodeJS.ProcessEnv) {
   return { key, primary, secondary };
 }
 type Settings = NonNullable<ReturnType<typeof auditSettings>>;
-export async function recordEvidence(settings: Settings, item: Evidence) {
+export async function recordEvidence(settings: Settings, item: Evidence,
+  beforeBroadcast?: (target: Destination) => void, reconcileOnly = false) {
   const account = privateKeyToAccount(settings.key);
   async function prepare(target: Destination) {
     const chain = defineChain({
@@ -126,6 +130,7 @@ export async function recordEvidence(settings: Settings, item: Evidence) {
     if (id !== target.id || !allowed)
       throw Error("Audit chain or reporter mismatch");
     if (recorded) return { target, send: undefined };
+    if (reconcileOnly) throw Error("Broadcast outcome still unconfirmed");
     const { request } = await reader.simulateContract({
       ...contract,
       account,
@@ -136,6 +141,7 @@ export async function recordEvidence(settings: Settings, item: Evidence) {
     return {
       target,
       send: async () => {
+        beforeBroadcast?.(target);
         const hash = await wallet.writeContract(request);
         const receipt = await reader.waitForTransactionReceipt({
           hash,
@@ -163,31 +169,61 @@ export async function recordEvidence(settings: Settings, item: Evidence) {
 }
 export function createAuditSink(env: NodeJS.ProcessEnv) {
   const settings = auditSettings(env);
-  let queue = Promise.resolve(),
-    pending = 0;
+  if (!settings) return () => undefined;
+  const path = resolve(env.AUDIT_OUTBOX_PATH || ".aegis-audit/outbox.sqlite");
+  mkdirSync(dirname(path), { recursive: true });
+  const db = new DatabaseSync(path);
+  db.exec(`PRAGMA busy_timeout=5000;
+    PRAGMA journal_mode=WAL;
+    CREATE TABLE IF NOT EXISTS outbox(
+      scope TEXT NOT NULL, id TEXT NOT NULL, evidence TEXT NOT NULL,
+      target INTEGER, due INTEGER NOT NULL DEFAULT 0, receipt TEXT,
+      PRIMARY KEY(scope,id))`);
+  const destinations = [settings.primary, settings.secondary].filter((d): d is Destination => !!d);
+  const scope = JSON.stringify([privateKeyToAccount(settings.key).address,
+    ...destinations.map(d => [d.id, d.contract])]);
+  const insert = db.prepare("INSERT OR IGNORE INTO outbox(scope,id,evidence) VALUES(?,?,?)");
+  const claim = db.prepare(`UPDATE outbox SET due=? WHERE scope=? AND id=(
+    SELECT id FROM outbox WHERE scope=? AND receipt IS NULL AND due<=?
+    ORDER BY due,rowid LIMIT 1) RETURNING id,evidence,target`);
+  const pin = db.prepare("UPDATE outbox SET target=? WHERE scope=? AND id=? AND target IS NULL");
+  const done = db.prepare("UPDATE outbox SET receipt=? WHERE scope=? AND id=?");
+  const retry = db.prepare("UPDATE outbox SET due=? WHERE scope=? AND id=?");
+  let working = false;
+  async function drain() {
+    if (working) return;
+    working = true;
+    try {
+      for (;;) {
+        const now = Date.now();
+        const row = claim.get(now + 120000, scope, scope, now);
+        if (!row) break;
+        const item: Evidence = JSON.parse(String(row.evidence));
+        try {
+          const target = destinations.find(d => d.id === row.target);
+          if (row.target !== null && !target) throw Error("Audit destination has changed");
+          const result = await recordEvidence(target ? { ...settings!, primary: target, secondary: undefined } : settings!, item, selected => {
+            if (pin.run(selected.id, scope, item.id).changes !== 1)
+              throw Error("Evidence already claimed for broadcast");
+          }, !!target);
+          done.run(JSON.stringify(result), scope, item.id);
+        } catch {
+          retry.run(Date.now() + 60000, scope, item.id);
+          console.warn("Audit evidence pending reconciliation", item.id);
+        }
+      }
+    } finally { working = false; }
+  }
+  function wake() {
+    void drain().catch(() => console.error("Audit outbox unavailable"));
+  }
+  setInterval(wake, 10000).unref();
+  wake();
   return (scan: Scan, report: Report) => {
-    if (!settings) return;
     const item = evidence(scan, report);
     if (!item) return;
-    if (pending >= 32) {
-      console.warn("Audit queue full; report was not recorded", item.id);
-      return;
-    }
-    pending++;
-    queue = queue
-      .then(async () => {
-        const receipt = await recordEvidence(settings, item);
-        console.info(
-          "Threat audit",
-          item.id,
-          receipt.chainId,
-          receipt.contract,
-          receipt.txHash ?? "already recorded",
-        );
-      })
-      .catch(() => console.warn("Audit write unconfirmed", item.id))
-      .finally(() => {
-        pending--;
-      });
+    insert.run(scope, item.id, JSON.stringify(item));
+    wake();
+    return item.id;
   };
 }

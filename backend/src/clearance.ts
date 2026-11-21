@@ -1,4 +1,5 @@
-import { keccak256, type Hex } from "viem";
+import { ownerPayment } from "./owner-intent.ts";
+import { verifyTypedData, keccak256, type Hex } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import {
   connect,
@@ -78,7 +79,19 @@ export async function issue(
     if (code) throw new PolicyRejectionError(code);
     throw err;
   }
-  const deadline = head.timestamp + 90n;
+  let deadline = head.timestamp + 90n;
+  if (process.env.AEGIS_REQUIRE_OWNER_INTENT === "true" || scan.ownerApproval) {
+    const approval = scan.ownerApproval;
+    if (!approval || BigInt(approval.validUntil) <= head.timestamp)
+      throw new PolicyRejectionError("OwnerIntentRequired", "Cần lệnh thanh toán còn hạn do chủ két ký.");
+    const owner = await chain.readContract({ ...read, functionName: "owner" });
+    const validUntil = BigInt(approval.validUntil);
+    const payment = ownerPayment(fuji.vault, agent, scan.to, transfer.recipient,
+      BigInt(transfer.amount), nonce, validUntil);
+    if (!await verifyTypedData({...payment, address: owner, signature: approval.signature}))
+      throw new PolicyRejectionError("OwnerIntentMismatch", "Lệnh của chủ két không khớp số tiền, đích, agent hoặc nonce hiện hành.");
+    if (validUntil < deadline) deadline = validUntil;
+  }
   const fields = [
     { name: "vault", type: "address" },
     { name: "agent", type: "address" },
