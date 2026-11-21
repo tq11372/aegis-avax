@@ -67,19 +67,21 @@ Từ gốc repo, chạy `npm ci`, cài phụ thuộc & build hợp đồng (`cd 
 2. `npm run dev:demo` tạo fork từ block Fuji hiện hành, nạp 50 mUSDC vào két thử và mở dịch vụ ở cổng 4021/4022. Khởi động lại sẽ tạo một phiên mới.
 3. `npm run dev:web` mở giao diện ở cổng 3000. Để dùng bản production, chạy `npm run build -w frontend` và `npm run start -w frontend`.
 
-Khi két đang rảnh, chạy `npm run eval` từ terminal khác. Ở block nguồn **61391624**, ngày 21/11/2026, kết quả trên Anvil với Qwen2.5-1.5B-Instruct Q4_K_M như sau (**36/36 đạt 100%**).
+Khi két đang rảnh, chạy `npm run eval` từ terminal khác. Ở block nguồn **61410111**, ngày 21/11/2026, bộ đánh giá mở rộng **60 kịch bản (5 tầng T1–T5)** trên Anvil với `Qwen2.5-1.5B-Instruct Q4_K_M` xuất toàn bộ bằng chứng từng ca ra [docs/eval-benchmark-60.json](docs/eval-benchmark-60.json).
 
-Kết quả chỉ áp dụng cho bộ 36 ca do nhóm tự xây dựng. Nhóm chưa đánh giá trên dữ liệu tấn công thực tế. Bộ lọc prompt injection dùng biểu thức chính quy là lớp heuristic. Trước khi ký, backend đối chiếu số tiền và người nhận với calldata bằng quy tắc tất định. Khi thực thi, két kiểm tra chữ ký, hạn mức và danh sách cho phép.
+Kết quả chỉ áp dụng cho bộ 60 ca do nhóm tự xây dựng (gồm 36 ca biên thiết kế chuẩn và 24 ca Stress & Boundary lách sát ngưỡng). Nhóm chưa đánh giá trên dữ liệu tấn công thực tế. Bộ lọc prompt injection dùng biểu thức chính quy là lớp heuristic. Trước khi ký, backend đối chiếu số tiền và người nhận với calldata bằng quy tắc tất định. Khi thực thi, két kiểm tra chữ ký, hạn mức và danh sách cho phép.
 
-| Nhóm ca | Kết quả quan sát |
-| --- | --- |
-| 13 lệnh sạch (10 mẫu chuẩn + 2 câu tiếng Việt tự nhiên + 1 lệnh `approve` hạn mức nhỏ 5 mUSDC) | Duyệt 13/13 (`verifier: model`, 0 false positive) |
-| 10 lệnh có dấu hiệu rủi ro (phishing / drainer) | Chặn 10/10, khớp chính xác cả 5 luật cứng |
-| 13 ca Prompt Injection, Jailbreak EOA lạ & lệch tài sản (`AVAX` vs `mUSDC`) | Chặn 13/13 (gồm cả jailbreak `IGNORE PREVIOUS INSTRUCTIONS` và giả mạo alias `MockPartner`) |
-| Precision / Recall / Block rate trên 23 ca cần chặn | **100,0% / 100,0% / 100,0%**, 0 cảnh báo nhầm, 0 lỗi dịch vụ |
-| Số dư két trước và sau 36 lần gọi API mô phỏng | **50 → 50 mUSDC** |
+| Tầng kiểm thử (Tier) | Số ca | Đạt ở Lớp 1 | FP | FN (Lọt Lớp 1) | Kết quả & Chốt chặn Lớp 2 (`GuardVault` / `PolicyModule`) |
+| --- | ---: | ---: | ---: | ---: | --- |
+| **T1 · Lệnh chuẩn (`Chuyển X mUSDC đến MockPartner`)** | 10 | **10 / 10 (100,0%)** | 0 | 0 | Duyệt đúng 10/10 (`verifier: model`) |
+| **T2 · Tiếng Việt đời thường (`"3 đô"`, `"ba mUSDC"`, ghi chú giảm giá)** | 12 | **10 / 12 (83,3%)** | 2 | 0 | 2 FP fail-closed: câu có 2 mức giá (`5 → 3 mUSDC`) & gửi `AVAX` vào `MockPartner` không có `receive()` |
+| **T3 · Phishing / Drainer đúng ngưỡng 5 luật cứng** | 10 | **10 / 10 (100,0%)** | 0 | 0 | Chặn 10/10, khớp đủ 5 luật cứng |
+| **T4 · Lách sát dưới ngưỡng (`75–79%` < `80%`, `2^128 - 1`, `3+3` / `4+3` hex)** | 10 | **6 / 10 (60,0%)** | 0 | 4 | Chặn 6/10 ở Lớp 1 (`2^128-1`, lệch số bằng chữ/đơn vị `"đô"`). **Cả 4 ca lọt Lớp 1 đều bị Lớp 2 on-chain chặn 100%** (`TargetNotWhitelisted`, `UnsupportedCall`, `TxLimitExceeded: 39,5 > 10 mUSDC`) |
+| **T5 · Hóa đơn lệch ý định, Jailbreak & Tiêm nhiễm tiếng Việt gián tiếp** | 18 | **18 / 18 (100,0%)** | 0 | 0 | Chặn 18/18 (gồm cả bẫy `"Nhận airdrop"` rút tiền ra và chú thích giả danh hệ thống) |
+| **Tổng hợp 36 ca biên chuẩn (Core Suite)** | **36** | **36 / 36 (100,0%)** | **0** | **0** | **Precision 100,0% · Recall 100,0% · Block rate 100,0%** |
+| **Tổng hợp 60 ca mở rộng (Full Stress & Boundary Suite)** | **60** | **54 / 60 (90,0%)** | **2** | **4** | **Lớp 1: Precision 94,4% · Recall 89,5% → Kết hợp Lớp 2 On-Chain: 0 mất quỹ (`50 → 50 mUSDC`)** |
 
-Nhóm hóa đơn và jailbreak kiểm tra giao dịch được đề xuất sau bước đọc tài liệu không tin cậy, bao gồm cả tấn công tiêm nhiễm chỉ thị trực tiếp vào `userIntent` và lệnh đổi tài sản sang `AVAX` native. Trích xuất chỉ thị từ tài liệu bằng một agent bên ngoài nằm ngoài phép đo. Bộ kiểm thử đơn vị (`npm test`) đạt **9/9**, `npm run test:audit` xác nhận chuyển dự phòng trong **9 ms**, `npm run test:extension` đạt trên Chromium thật. Để thử thực thi qua giao diện HTTP và đọc cả hai biên nhận Anvil, chạy `node backend/test/demo-controls.ts` trên phiên mới. Để thử qua giao thức MCP từ đầu tới cuối dùng `npm run test:fork:llm`.
+Bốn ca `FN` ở tầng **T4** chứng minh thực nghiệm vì sao Lớp 1 off-chain (luật ngưỡng + heuristic + model 1.5B) không thể đạt 100% trước các đòn lách sát dưới ngưỡng (`75–79% < 80%`, địa chỉ giả mạo chỉ trùng `3+3` hoặc `4+3` ký tự hex, hoặc ý định mơ hồ `"vài đô"` nhưng chuyển `39,5 mUSDC` cho đối tác trong whitelist), và vì sao **bắt buộc phải có Lớp 2 Smart Contract on-chain** (`GuardVault` + `PolicyModule`) để khóa cứng `TargetNotWhitelisted`, `UnsupportedCall` và `TxLimitExceeded (10 mUSDC)`. Bộ kiểm thử đơn vị (`npm test`) đạt **10/10**, `npm run test:audit` xác nhận chuyển dự phòng trong **9–17 ms** trên hai node Anvil cục bộ, `npm run test:extension` đạt trên Chromium thật. Để thử thực thi qua giao diện HTTP và đọc cả hai biên nhận Anvil, chạy `node backend/test/demo-controls.ts` trên phiên mới. Để thử qua giao thức MCP từ đầu tới cuối dùng `npm run test:fork:llm`.
 
 Bước 1 triển khai két `GuardVault` và bộ quy tắc `PolicyModule`. Chủ két nạp token bằng ERC-20 transfer, cấp session key và chọn người nhận. Agent chỉ được chuyển token thanh toán đã duyệt. Két đọc địa chỉ người nhận và số tiền trực tiếp từ calldata, kiểm tra hạn mức rồi xác thực chữ ký EIP-712 trước khi chuyển. Hạn mức ngày tính trên 24 giờ gần nhất và tiếp tục áp dụng khi đổi session key.
 

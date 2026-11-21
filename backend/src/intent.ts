@@ -14,10 +14,60 @@ const verdict = z
 export type Verdict = z.infer<typeof verdict>;
 
 const INJECTION_RE =
-  /(ignore\s+(?:all\s+|previous|above|prior)\s+instructions?|disregard\s+(?:all\s+|previous|above)|system\s+override|override\s+(?:system|policy|rules)|"riskLevel"\s*:|"intentMatch"\s*:|output\s+json|respond\s+strictly\s+with|pretend\s+(?:this|it)\s+is\s+safe|always\s+return\s+safe|bỏ\s+qua\s+(?:mọi\s+|tất\s+cả\s+)?(?:hướng\s+dẫn|chỉ\s+thị|quy\s+tắc))/i;
+  /(ignore\s+(?:all\s+|previous|above|prior)\s+instructions?|disregard\s+(?:all\s+|previous|above)|system\s+override|override\s+(?:system|policy|rules)|"riskLevel"\s*:|"intentMatch"\s*:|output\s+json|respond\s+strictly\s+with|pretend\s+(?:this|it)\s+is\s+safe|always\s+return\s+safe|bỏ\s+qua\s+(?:mọi\s+|tất\s+cả\s+)?(?:hướng\s+dẫn|chỉ\s+thị|quy\s+tắc)|ghi\s+chú\s+(?:kiểm\s+toán|hệ\s+thống)|xác\s+nhận\s+từ\s+(?:policymodule|guardvault|hệ\s+thống)|thông\s+tin\s+xác\s+thực\s*:|hệ\s+thống\s+kế\s+toán\s+xác\s+nhận|(?:khớp|trùng\s+khớp)\s+(?:100%|hoàn\s+toàn|tuyệt\s+đối)\s+với\s+(?:yêu\s+cầu|gói)|đã\s+cập\s+nhật\s+quyết\s+định\s+thành)/iu;
 
 const APPROVE_INTENT_RE =
-  /(cấp\s+quyền|phê\s+duyệt|ủy\s+quyền|\bapprove\b|\ballowance\b)/i;
+  /(cấp\s+quyền|phê\s+duyệt|ủy\s+quyền|\bapprove\b|\ballowance\b)/iu;
+
+const INBOUND_CLAIM_RE =
+  /(?<!chấp\s)(?<![\p{L}\p{N}_])(nhận\s+(?:phần\s+thưởng|airdrop|quà|thưởng\s+miễn\s+phí)|claim\s+(?:airdrop|reward|free))(?![\p{L}\p{N}_])/iu;
+
+const VI_DIGITS: Record<string, string> = {
+  không: "0",
+  một: "1",
+  mốt: "1",
+  hai: "2",
+  ba: "3",
+  bốn: "4",
+  tư: "4",
+  năm: "5",
+  lăm: "5",
+  sáu: "6",
+  bảy: "7",
+  tám: "8",
+  chín: "9",
+  mười: "10",
+};
+
+function normalizeVietnameseNumbers(text: string): string {
+  const words = Object.keys(VI_DIGITS).join("|");
+  const decRe = new RegExp(
+    `(?<![\\p{L}\\p{N}_])(${words})\\s+(?:phẩy|chấm)\\s+(${words})(?![\\p{L}\\p{N}_])`,
+    "giu",
+  );
+  const halfRe = new RegExp(
+    `(?<![\\p{L}\\p{N}_])(${words})\\s+rưỡi(?![\\p{L}\\p{N}_])`,
+    "giu",
+  );
+  const singleRe = new RegExp(
+    `(?<![\\p{L}\\p{N}_])(${words})(?=\\s+(?:m?usdc|usd|đô(?:\\s*la)?|bucks?|avax)(?![\\p{L}\\p{N}_]))`,
+    "giu",
+  );
+  return text
+    .replace(
+      decRe,
+      (_, a: string, b: string) =>
+        `${VI_DIGITS[a.toLowerCase()]}.${VI_DIGITS[b.toLowerCase()]}`,
+    )
+    .replace(
+      halfRe,
+      (_, a: string) => `${VI_DIGITS[a.toLowerCase()]}.5`,
+    )
+    .replace(
+      singleRe,
+      (_, a: string) => VI_DIGITS[a.toLowerCase()],
+    );
+}
 
 type ObservedAction = {
   kind: "transfer" | "approve" | "nativeTransfer";
@@ -30,26 +80,32 @@ type ObservedAction = {
 };
 
 export function extractRequestedIntent(userIntent: string) {
-  const text = userIntent.trim();
+  const rawText = userIntent.trim();
+  const text = normalizeVietnameseNumbers(rawText);
   const amounts: { raw: string; asset: "mUSDC" | "AVAX" }[] = [];
-  for (const m of text.matchAll(/\b(\d+(?:[.,]\d{1,18})?)\s*(m?usdc|avax)\b/gi)) {
+  const amtRe =
+    /(?<![\p{L}\p{N}_.])(\d+(?:[.,]\d{1,18})?)\s*(m?usdc|usd|đô(?:\s*la)?|bucks?|avax)(?![\p{L}\p{N}_])/giu;
+  for (const m of text.matchAll(amtRe)) {
+    const unit = m[2].toLowerCase();
     amounts.push({
       raw: m[1].replace(",", "."),
-      asset: m[2].toLowerCase().includes("usdc") ? "mUSDC" : "AVAX",
+      asset: unit === "avax" ? "AVAX" : "mUSDC",
     });
   }
-  const mentionsMockPartner = /\bmockpartner\b/i.test(text);
-  const addresses = [...text.matchAll(/\b(0x[0-9a-f]{40})\b/gi)].map(
+  const mentionsMockPartner = /\bmockpartner\b/i.test(rawText);
+  const addresses = [...rawText.matchAll(/\b(0x[0-9a-f]{40})\b/gi)].map(
     (m) => m[1] as Address,
   );
-  const mentionsApprove = APPROVE_INTENT_RE.test(text);
-  const hasInjection = INJECTION_RE.test(text);
+  const mentionsApprove = APPROVE_INTENT_RE.test(rawText);
+  const hasInjection = INJECTION_RE.test(rawText);
+  const mentionsInboundClaim = INBOUND_CLAIM_RE.test(rawText);
   return {
     amounts,
     mentionsMockPartner,
     addresses,
     mentionsApprove,
     hasInjection,
+    mentionsInboundClaim,
   };
 }
 
@@ -58,7 +114,8 @@ export function matchesTransferIntent(
   transfer: NonNullable<ReturnType<typeof confirmedTransfer>>,
 ) {
   const req = extractRequestedIntent(userIntent);
-  if (req.hasInjection || req.mentionsApprove) return false;
+  if (req.hasInjection || req.mentionsApprove || req.mentionsInboundClaim)
+    return false;
   const usdcAmounts = req.amounts.filter((a) => a.asset === "mUSDC");
   const avaxAmounts = req.amounts.filter((a) => a.asset === "AVAX");
   if (avaxAmounts.length > 0 || usdcAmounts.length !== 1) return false;
@@ -171,6 +228,17 @@ export async function verifyIntent(
 
   const observed = extractObservedAction(scan, sim);
 
+  // Inbound ("claim airdrop / receive reward") vs outbound transfer/approve mismatch.
+  if (observed && req.mentionsInboundClaim) {
+    return {
+      verifier: "intent",
+      riskLevel: "CRITICAL",
+      intentMatch: false,
+      explanationVi:
+        "Ý định là nhận thưởng/airdrop nhưng giao dịch thực tế lại chuyển tài sản hoặc cấp quyền đi ra khỏi ví.",
+    };
+  }
+
   // Prevent vault funds from being labelled SAFE when sent/approved outside PolicyModule targetWhitelist.
   if (
     observed &&
@@ -201,15 +269,27 @@ export async function verifyIntent(
   }
 
   if (observed) {
-    // Action kind guard: prevent silent approve when user intended a transfer.
-    if (observed.kind === "approve" && !req.mentionsApprove) {
-      return {
-        verifier: "intent",
-        riskLevel: "CRITICAL",
-        intentMatch: false,
-        explanationVi:
-          "Giao dịch thực tế là lệnh phê duyệt (approve), không phải lệnh chuyển tiền như ý định.",
-      };
+    // Action kind guard: prevent silent approve when user intended a transfer,
+    // and require explicit allowance amount for every approve call.
+    if (observed.kind === "approve") {
+      if (!req.mentionsApprove) {
+        return {
+          verifier: "intent",
+          riskLevel: "CRITICAL",
+          intentMatch: false,
+          explanationVi:
+            "Giao dịch thực tế là lệnh phê duyệt (approve), không phải lệnh chuyển tiền như ý định.",
+        };
+      }
+      if (req.amounts.length === 0) {
+        return {
+          verifier: "intent",
+          riskLevel: "MEDIUM",
+          intentMatch: false,
+          explanationVi:
+            "Lệnh phê duyệt (approve) phải nêu rõ hạn mức số tiền cụ thể trong ý định người dùng.",
+        };
+      }
     }
 
     // Asset mismatch guard (e.g. user requested mUSDC, calldata sends native AVAX).
@@ -228,7 +308,7 @@ export async function verifyIntent(
       };
     }
 
-    // Amount mismatch guard (works for both canonical and natural Vietnamese/English intents).
+    // Amount mismatch guard (works for canonical, colloquial 'đô', and Vietnamese number words).
     if (req.amounts.length > 0 && observed.decimals > 0) {
       const sameAssetAmounts = req.amounts.filter(
         (a) => a.asset === observed.asset,

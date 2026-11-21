@@ -201,6 +201,42 @@ test("asset mismatch (AVAX transfer vs mUSDC intent) and non-whitelisted vault r
   assert.equal(resNonWl.riskLevel, "CRITICAL");
   assert.equal(resNonWl.intentMatch, false);
 });
+test("Vietnamese number words, colloquial currency units, unquantified approve, and outbound airdrop claims are verified", async () => {
+  const transfer = confirmedTransfer(input, snapshot)!;
+  assert.equal(matchesTransferIntent("Trả ba mUSDC cho MockPartner", transfer), true);
+  assert.equal(matchesTransferIntent("Chuyển 3 đô cho đối tác MockPartner", transfer), true);
+  assert.equal(matchesTransferIntent("Trả chín mUSDC cho MockPartner", transfer), false);
+
+  const vagueApprove: Scan = {
+    ...input,
+    data: encodeFunctionData({
+      abi: erc20Abi,
+      functionName: "approve",
+      args: [fuji.partner, 2n ** 128n - 1n],
+    }),
+    userIntent: "Cấp quyền chi tiêu mUSDC cho MockPartner",
+  };
+  const vagueSim: Simulation = {
+    ...snapshot,
+    balances: [{ asset: fuji.token, account: fuji.vault, before: "50000000", after: "50000000" }],
+    events: [{ name: "Approval", asset: fuji.token, from: fuji.vault, to: fuji.partner, amount: String(2n ** 128n - 1n) }],
+  };
+  const resVague = await verifyIntent(vagueApprove, vagueSim, review(vagueApprove, vagueSim, []));
+  assert.equal(resVague.intentMatch, false);
+  assert.notEqual(resVague.riskLevel, "SAFE");
+
+  const fakeAirdrop: Scan = {
+    from: fuji.owner,
+    to: "0x3333333333333333333333333333333333333333" as Address,
+    data: "0x",
+    value: "5000000000000000",
+    userIntent: "Nhận phần thưởng airdrop miễn phí về ví",
+    knownRecipients: [],
+  };
+  const resAirdrop = await verifyIntent(fakeAirdrop, snapshot, review(fakeAirdrop, snapshot, []));
+  assert.equal(resAirdrop.riskLevel, "CRITICAL");
+  assert.equal(resAirdrop.intentMatch, false);
+});
 test("API rejects invalid input and advertises the precise x402 price", async () => {
   const app = createApp();
   const free = await app.request("/api/v1/web/verify-tx", {
