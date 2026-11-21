@@ -20,7 +20,7 @@ flowchart LR
     Sim["Anvil Fork Simulator (Fuji state)"] --> Rules["5 Deterministic Risk Rules + ScamRegistry"]
     Rules --> LLM["AI Intent Verifier (JSON tiếng Việt, fail-closed)"]
     LLM -->|SAFE & intentMatch| Signer["EIP-712 Clearance Signer"]
-    LLM -->|MEDIUM / CRITICAL| Audit["ThreatAuditLog (Fuji; L1 riêng: đang chờ validator)"]
+    LLM -->|MEDIUM / CRITICAL| Audit["ThreatAuditLog (Aegis Audit 99321 / Fuji)"]
   end
   Signer -->|Signature + deadline + nonce| Vault["Lớp 2 · GuardVault + PolicyModule (Fuji 43113)"]
   Vault -->|Kiểm tra limit, whitelist, Kill Switch| Target["MockPartner / ERC-20 Transfer"]
@@ -104,7 +104,7 @@ Trong `chrome://extensions`, bật Developer mode, chọn Load unpacked và ch�
 
 Để kiểm thử extension trong một hồ sơ Chromium tạm, chạy ba dịch vụ demo bên trên, `npx playwright install chromium`, rồi `npm run test:extension`. Chạy `npm run test:audit` để tự tạo hai Anvil, ghi và đọc sự kiện `ThreatLogged` trên cả hai mạng, kiểm tra ID trùng và thời gian chuyển dự phòng.
 
-Để triển khai lên **L1 riêng sau khi có validator**, tạo chain EVM trong Builder Console, khởi chạy validator, lưu URL RPC và lấy chain ID từ chính RPC. Phân bổ gas native cho deployer và reporter. Đặt `AUDIT_L1_RPC_URL`, `AUDIT_L1_CHAIN_ID`, `DEPLOYER_ADDRESS`, `AUDIT_REPORTER_ADDRESS` trong môi trường terminal. Trong `contracts/`, chạy lệnh sau để mô phỏng. Sau khi xác nhận chain ID, chạy lại với `--broadcast --account <tên-keystore>` để ký và lưu địa chỉ từ biên nhận triển khai. [Avalanche Builder Console](https://build.avax.network/console/create-l1)
+Để tái lập trên **một L1 riêng**, tạo chain EVM trong Builder Console, khởi chạy validator, lưu URL RPC và lấy chain ID từ chính RPC. Phân bổ gas native cho deployer và reporter. Đặt `AUDIT_L1_RPC_URL`, `AUDIT_L1_CHAIN_ID`, `DEPLOYER_ADDRESS`, `AUDIT_REPORTER_ADDRESS` trong môi trường terminal. Trong `contracts/`, chạy lệnh sau để mô phỏng. Sau khi xác nhận chain ID, chạy lại với `--broadcast --account <tên-keystore>` để ký và lưu địa chỉ từ biên nhận triển khai. [Avalanche Builder Console](https://build.avax.network/console/create-l1)
 
 ```powershell
 forge script script/DeployAudit.s.sol:DeployAudit --rpc-url $env:AUDIT_L1_RPC_URL --sender $env:DEPLOYER_ADDRESS
@@ -231,8 +231,10 @@ Ngày 20/11/2026, Fuji (chain ID `43113`) xác nhận 13 giao dịch từ block 
 
 Tại block `61380210`, két giữ **100 mUSDC**, đang hoạt động và yêu cầu chữ ký clearance. Hạn mức là **10 mUSDC/giao dịch** và **25 mUSDC/24 giờ**. MockPartner nằm trong danh sách người nhận được phép. MockDrainer đã được gắn cờ và không có quyền nhận từ agent. [Biên nhận nạp két](https://testnet.snowtrace.io/tx/0x99e3a10babd08e6c17ffbb43021956e12426bb25347b686e0078221ea4cf231f)
 
-### Aegis Audit (AEGIS, chain ID 99321) chưa có validator
+### Aegis Audit (AEGIS, chain ID 99321)
 
 - **Subnet (`CreateSubnetTx` trên Fuji P-Chain):** [`KmstuFWyaPpv5H6WktTxpuwE7NzCBANM1KfNCWirk8rFaTaH2`](https://build.avax.network/explorer/fuji/p-chain/tx/KmstuFWyaPpv5H6WktTxpuwE7NzCBANM1KfNCWirk8rFaTaH2)
 - **Blockchain (`CreateChainTx` trên Fuji P-Chain):** [`2NLmJSAC471YuC8Eyiyjp7FtrEdMuFWXeL2guuFKH2CyUm5NmF`](https://build.avax.network/explorer/fuji/p-chain/tx/2NLmJSAC471YuC8Eyiyjp7FtrEdMuFWXeL2guuFKH2CyUm5NmF)
-Aegis Audit đã tạo Subnet và Chain trên Fuji P-Chain. Mạng chưa có validator do dịch vụ Managed Node báo lỗi 500/502. ThreatAuditLog hiện ghi trên Fuji C-Chain. Phép thử chuyển dự phòng 12–15 ms được đo trên hai node Anvil cục bộ bằng `npm run test:audit`.
+Aegis Audit (99321) có một validator tự vận hành. ThreatAuditLog đã ghi lại sự kiện T1 tại block 3 của L1. RPC chạy trên máy dự án. Phép thử chuyển dự phòng 12–15 ms được đo trên hai node Anvil cục bộ bằng `npm run test:audit`.
+
+Ngày 21/11/2026, Fuji P-Chain xác nhận một validator trọng số 1. Tổng ghi nợ ví P-Chain là 0,100018516 AVAX testnet, gồm 0,1 AVAX cấp cho validator. Trên L1 99321, ba giao dịch triển khai ThreatAuditLog, cấp quyền reporter và ghi lại sự kiện T1 đã được xác nhận ở block 1–3, tổng phí 0,000422374000422374 AEGIS. Địa chỉ ThreatAuditLog trên **chain 99321** là `0x7620FaBA82e05bBb889f80F3E20429A81f2e7113`. Phép kiểm tra RPC đã đối chiếu bytecode, owner, reporter và sự kiện. RPC hiện chỉ mở trên máy vận hành. [Giao dịch chuyển đổi trên P-Chain](https://build.avax.network/explorer/fuji/p-chain/tx/2FH3dGE7o2mz6VscxVvqUY5iwgeiNio7r1TG8ErHVYTGTBQbGR) · [Hash và biên nhận L1](docs/aegis-l1-proof.json)

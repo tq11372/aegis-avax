@@ -1,0 +1,60 @@
+{
+  "pChain": {
+    "checkedUtc": "2026-11-21T04:18:28.1011638Z",
+    "network": "Fuji",
+    "subnetID": "KmstuFWyaPpv5H6WktTxpuwE7NzCBANM1KfNCWirk8rFaTaH2",
+    "blockchainID": "2NLmJSAC471YuC8Eyiyjp7FtrEdMuFWXeL2guuFKH2CyUm5NmF",
+    "evmChainId": 99321,
+    "explorer": "https://build.avax.network/explorer/fuji/p-chain/tx/2FH3dGE7o2mz6VscxVvqUY5iwgeiNio7r1TG8ErHVYTGTBQbGR",
+    "transactionId": "2FH3dGE7o2mz6VscxVvqUY5iwgeiNio7r1TG8ErHVYTGTBQbGR",
+    "txStatus": "Committed",
+    "conversionID": "2YVDYhcLELVBFTWzTBiMC7XHmUG8rSGqdFw3Jvpi96hSpf2UMX",
+    "managerAddress": "0xfacade0000000000000000000000000000000000",
+    "nodeID": "NodeID-JfjZnbPTuMLnFuqT5gwcRChkBy23sPT8G",
+    "validationID": "Td64UUXCmY8YjBSC5Y9Dd1uPxNp685UsNEciH5cE8Zh9gBsY6",
+    "validatorCount": 1,
+    "initialWeight": "1",
+    "initialBalanceNavax": "100000000",
+    "transactionFeeNavax": "18516",
+    "totalDebitNavax": "100018516"
+  },
+  "l1Audit": {
+    "chainId": 99321,
+    "blockchainID": "2NLmJSAC471YuC8Eyiyjp7FtrEdMuFWXeL2guuFKH2CyUm5NmF",
+    "contract": "0x7620FaBA82e05bBb889f80F3E20429A81f2e7113",
+    "owner": "0xA233579CAee3BCF9dE050e66b75FfF06A6EB6270",
+    "reporter": "0x6fb936776cf69300F3Dc54EE9c29a12c86c5085D",
+    "runtimeHash": "0x03c5fc5472835986c8f8bccf2a518ec048be30cbd6a8fe39a05624c755b50a77",
+    "sourceChainId": 43113,
+    "sourceHash": "0xdbe110f7f8080a53b1ab157633eebf01a26f70c36d84cf39d7fd5df1896be59c",
+    "evidenceId": "0x9392fea0c150825aef4f911d08609aea8cfb4945289445078738f8930d90b64d",
+    "rows": [
+      {
+        "step": "deploy",
+        "hash": "0x2c9742c6a237cee811d8c54d7d88f0833fbcab2e0f5e1ec5f914673daf08d7b4",
+        "block": 1,
+        "status": 1,
+        "gasUsed": "325049",
+        "feeWei": "325049000325049"
+      },
+      {
+        "step": "setReporter",
+        "hash": "0x85b1f6530f6a5804eddf92d555e067f7c0b396341cac150b7964bd91ba31841c",
+        "block": 2,
+        "status": 1,
+        "gasUsed": "47796",
+        "feeWei": "47796000047796"
+      },
+      {
+        "step": "logThreat",
+        "hash": "0x87a69ddfe6880f271192edb62f6221459bf9239cb264a241e539f2ecebe7db7d",
+        "block": 3,
+        "status": 1,
+        "gasUsed": "49529",
+        "feeWei": "49529000049529"
+      }
+    ],
+    "totalGasAEGIS": "0.000422374000422374"
+  },
+  "verifiedBlockHash": "0xb4168137506f64951be3e92c448f2fe9decd3b07f325e833daef3f9febcc209a"
+}

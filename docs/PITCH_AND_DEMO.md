@@ -36,7 +36,7 @@ Tài liệu chuẩn bị cho **Vòng loại trực tuyến (50đ kỹ thuật)**
 ### Slide 5 — Trả lời Câu hỏi 2: *Why Avalanche?*
 - Giao dịch Kill Switch trên Fuji mất 3168 ms đến khi máy chạy thử nhận biên nhận. Lệnh sau đó của agent bị từ chối với `AgentRevoked`.
 - Agent đã thanh toán 0,005 mUSDC trên testnet bằng EIP-3009.
-- Aegis Audit đã tạo Subnet và Chain trên Fuji P-Chain. Mạng chưa có validator do dịch vụ Managed Node báo lỗi 500/502. ThreatAuditLog hiện ghi trên Fuji C-Chain.
+- Aegis Audit (99321) có một validator tự vận hành. ThreatAuditLog đã ghi lại sự kiện T1 tại block 3 của L1. RPC chạy trên máy dự án.
 
 ### Slide 6 — Giao thức kinh tế Agent (`x402` + `aegis-mcp`) & Tiện ích Chrome MV3
 - **B2B / M2M `x402` (`POST /api/v1/agent/verify-tx`):** Trả `HTTP 402 Payment Required` (`5,000` đơn vị = `0.005 mUSDC`, `eip155:43113`), xác thực & thanh toán bằng **EIP-3009 (`transferWithAuthorization`)** qua header `PAYMENT-SIGNATURE` không cần tạo tài khoản hay trả phí theo tháng.
@@ -75,8 +75,8 @@ Tài liệu chuẩn bị cho **Vòng loại trực tuyến (50đ kỹ thuật)**
 - **Luồng 3 (Bypass Lớp 1 & Kill Switch):** Gửi lệnh thiếu chữ ký thẳng vào `GuardVault` → hợp đồng **`REVERT` (`InvalidSecurityClearance`)** → bấm **`KILL SWITCH`** thu hồi quyền agent khi giao dịch được xác nhận.
 
 ### Slide 11 — Lộ trình phát triển & Tổng kết
-- **Đã hoàn thành:** 7 hợp đồng verified trên Fuji, Anvil Fork + 5 Rules + Qwen Verifier + x402 + `aegis-mcp`, Web UI 2 tab, Eval 36 ca, Chrome Extension MV3, `ThreatAuditLog` failover, và đăng ký `CreateSubnetTx` / `CreateChainTx` cho mạng riêng `Aegis Audit` (`99321`) trên Fuji P-Chain. Mạng chưa có validator.
-- **Hướng mở rộng sau cuộc thi:** Hoàn tất validator của Aegis Audit cho mạng lưới ghi nhật ký đe dọa phân tán, tích hợp đa ví (Core/Safe), và kết nối cảnh báo liên chuỗi qua ICM/Teleporter.
+- **Đã hoàn thành:** 7 hợp đồng verified trên Fuji, Anvil Fork + 5 Rules + Qwen Verifier + x402 + `aegis-mcp`, Web UI 2 tab, Eval 36 ca, Chrome Extension MV3, `ThreatAuditLog` failover, và đăng ký `CreateSubnetTx` / `CreateChainTx` cho mạng riêng `Aegis Audit` (`99321`) trên Fuji P-Chain. Một validator tự vận hành đã xác nhận ba block đầu của L1.
+- **Hướng mở rộng sau cuộc thi:** Bổ sung validator cho Aegis Audit cho mạng lưới ghi nhật ký đe dọa phân tán, tích hợp đa ví (Core/Safe), và kết nối cảnh báo liên chuỗi qua ICM/Teleporter.
 - **Kêu gọi:** Link GitHub Repo + QR Code mở thẳng `GuardVault` trên Fuji Explorer.
 
 ---
@@ -124,7 +124,7 @@ Tài liệu chuẩn bị cho **Vòng loại trực tuyến (50đ kỹ thuật)**
    - **Trả lời:** Ghi đè `window.ethereum` dễ xung đột với chuẩn EIP-6963, CSP của trang web và rủi ro bảo mật khóa ví. Extension của AegisAVAX hoạt động ở chế độ Popup / Floating Shield độc lập, không chạm tới khóa ký của ví, đồng thời so khớp tên miền với blocklist MetaMask có bản dự phòng cục bộ.
 
 6. **Hỏi: Phần tích hợp L1 riêng Aegis Audit hiện đang ở mức nào và nếu RPC L1 chết khi vận hành thì sao?**
-   - Aegis Audit đã tạo Subnet và Chain trên Fuji P-Chain. Mạng chưa có validator do dịch vụ Managed Node báo lỗi 500/502. ThreatAuditLog hiện ghi trên Fuji C-Chain. Chuyển dự phòng 12–15 ms được đo trên hai node Anvil cục bộ. Worker kiểm tra chain ID, quyền reporter và ID trùng trước khi ghi.
+   - Aegis Audit (99321) có một validator tự vận hành. ThreatAuditLog đã ghi lại sự kiện T1 tại block 3 của L1. RPC chạy trên máy dự án. Chuyển dự phòng 12–15 ms được đo trên hai node Anvil cục bộ. Worker kiểm tra chain ID, quyền reporter và ID trùng trước khi ghi.
 
 7. **Hỏi: Tại sao trong `foundry.toml` lại chốt `evm_version = "cancun"` và OpenZeppelin `v5.6.1`?**
    - **Trả lời:** Để tương thích tuyệt đối với Avalanche Fuji C-Chain — tránh các bản OpenZeppelin mới hơn có thể sinh opcode `CLZ` (Osaka) chưa được Fuji hỗ trợ, đảm bảo cả 7 hợp đồng biên dịch, triển khai và xác minh `exact_match` trơn tru.
