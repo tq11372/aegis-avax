@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/tq11372/aegis-avax/actions/workflows/ci.yml/badge.svg)](https://github.com/tq11372/aegis-avax/actions/workflows/ci.yml)
 
-[📑 Pitch Slides 22 trang (PDF)](docs/AegisAVAX_Pitch_Slides.pdf) · [📊 Pitch Slides (PPTX)](docs/AegisAVAX_Pitch_Slides.pptx) · [🌐 Google Slides](https://docs.google.com/presentation/d/1GbwWTIyI_WBsYoN1tf5dfELDGwLOYKd3yoCp3-T3uqU/preview) · [🔗 GuardVault trên Snowtrace](https://testnet.snowtrace.io/address/0x4d0DA228a21F02c83ee3aF70E6702a489cD1019F) · [🔴 12 Biên nhận Live Proof Fuji](#live-proof-on-fuji) · [⛓️ Own L1 Aegis Audit (99321)](#aegis-audit-aegis-chain-id-99321) · [📊 Benchmark 500 Ca (`99,2%`)](#chạy-giao-diện-và-bộ-đánh-giá)
+[📑 Pitch Slides (22 trang)](https://docs.google.com/presentation/d/1GbwWTIyI_WBsYoN1tf5dfELDGwLOYKd3yoCp3-T3uqU/preview) · [🔗 GuardVault trên Snowtrace](https://testnet.snowtrace.io/address/0x4d0DA228a21F02c83ee3aF70E6702a489cD1019F) · [🔴 12 Biên nhận Live Proof Fuji](#live-proof-on-fuji) · [⛓️ Own L1 Aegis Audit (99321)](#aegis-audit-aegis-chain-id-99321) · [📊 Benchmark 500 Ca (`99,2%`)](#chạy-giao-diện-và-bộ-đánh-giá)
 
 **Tường lửa giao dịch trước khi ký & Két bảo vệ AI Agent trên Avalanche** • Đội `AI_hihi11` (Trần Văn Quân) • Team1 Vietnam UniHack 2026.
 

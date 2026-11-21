@@ -6,7 +6,7 @@ Tài liệu chuẩn bị cho **Vòng loại trực tuyến (50đ kỹ thuật)**
 
 ## 1. Dàn ý Slide Pitch (22 slide — tiếng Việt, hệ bố cục Slidev & Vercel Geist)
 
-> **File trình chiếu trực tiếp trong repo:** [📄 `AegisAVAX_Pitch_Slides.pdf` (22 trang PDF)](AegisAVAX_Pitch_Slides.pdf) · [📊 `AegisAVAX_Pitch_Slides.pptx` (22 trang PowerPoint kèm Speaker Notes)](AegisAVAX_Pitch_Slides.pptx) · [🌐 Google Slides](https://docs.google.com/presentation/d/1GbwWTIyI_WBsYoN1tf5dfELDGwLOYKd3yoCp3-T3uqU/edit?usp=sharing)
+> **Link Google Slides công khai (22 trang):** [https://docs.google.com/presentation/d/1GbwWTIyI_WBsYoN1tf5dfELDGwLOYKd3yoCp3-T3uqU/edit?usp=sharing](https://docs.google.com/presentation/d/1GbwWTIyI_WBsYoN1tf5dfELDGwLOYKd3yoCp3-T3uqU/edit?usp=sharing)
 >
 > Bộ slide chuẩn hóa theo hệ thống bố cục mã nguồn mở **[Slidev](https://github.com/slidevjs/slidev)** (`cover`, `two-cols`, `fact`, `image-right`, `statement` 3 hàng đối chiếu, `four-step` pipeline) kết hợp ảnh chụp giao diện sản phẩm thiết kế theo **[`shadcn-ui/ui`](https://github.com/shadcn-ui/ui)** và **Vercel Geist Design System**. Toàn bộ 22 trang đồng nhất hệ lưới `16:9` (`13.333 × 7.5 in`), tiêu đề phụ hai thành phần (`NHÓM CHỦ ĐỀ  /  TIÊU ĐỀ PHỤ`), bảng màu tương phản cao (`#241B39`, `#FAF8F3`, `#EDE7FA`, `#613CAA`, `#ADF2D1`) và bộ đếm trang `01 / 22` .. `22 / 22`.
 
